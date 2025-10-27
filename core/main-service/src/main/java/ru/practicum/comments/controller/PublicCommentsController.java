@@ -27,11 +27,4 @@ public class PublicCommentsController {
         CommentPublicParam param = new CommentPublicParam(eventId, from, size);
         return commentService.getCommentsByEventId(param);
     }
-
-
-
-
-
-
 }
-

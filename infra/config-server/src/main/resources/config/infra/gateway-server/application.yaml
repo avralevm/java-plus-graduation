@@ -6,7 +6,7 @@ spring:
         - id: main_service_route
           uri: lb://main-service
           predicates:
-            - Path=/**
+            - Path=/categories/**,/users/**,/comments/**,/events/**,/compilations/**,/admin/**
 
 logging:
   level:
