@@ -3,7 +3,7 @@ package ru.practicum.events.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.practicum.client.StatClient;
+import ru.practicum.client.StatFeignClient;
 import ru.practicum.dto.output.GetStatisticDto;
 import ru.practicum.events.model.Event;
 
@@ -14,7 +14,7 @@ import java.util.*;
 @Component
 @Slf4j
 public class StatClientService {
-    private final StatClient statClient;
+    private final StatFeignClient statFeignClient;
 
     public Map<Long, Long> getEventsView(List<Event> events) {
         //eventId, views
@@ -45,7 +45,7 @@ public class StatClientService {
                 .map(id -> "/events/" + id)
                 .toList();
 
-        List<GetStatisticDto> stats = statClient.getStats(start, LocalDateTime.now(), uri, true);
+        List<GetStatisticDto> stats = statFeignClient.getStats(start, LocalDateTime.now(), uri, true);
 
         stats.forEach(statDto -> {
             String[] parts = statDto.getUri().split("/");

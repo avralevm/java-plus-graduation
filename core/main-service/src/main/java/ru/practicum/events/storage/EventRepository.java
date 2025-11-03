@@ -12,21 +12,15 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event>, EventQueryDslRepository {
     @Query("SELECT e " +
             "FROM Event AS e " +
-            "WHERE e.initiator.id = :initiatorId " +
+            "WHERE e.initiatorId = :initiatorId " +
             "ORDER BY e.createdOn")
     List<Event> findAllByInitiatorId(@Param("initiatorId") Long initiatorId, Pageable pageable);
 
     @Query("SELECT e " +
             "FROM Event AS e " +
-            "WHERE e.initiator.id = :initiatorId " +
+            "WHERE e.initiatorId = :initiatorId " +
             "ORDER BY e.createdOn")
     List<Event> findAllByInitiatorId(@Param("initiatorId") Long initiatorId);
-
-    @Query("SELECT e.id, e.initiator " +
-            "FROM Event AS e " +
-            "WHERE e.id IN :eventsIds " +
-            "GROUP BY e.id")
-    List<Object[]> getUsersByEventIds(@Param("eventsIds") List<Long> eventIds);
 
     boolean existsByCategoryId(Long id);
 }

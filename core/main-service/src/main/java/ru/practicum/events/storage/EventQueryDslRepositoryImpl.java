@@ -25,7 +25,7 @@ public class EventQueryDslRepositoryImpl implements EventQueryDslRepository {
 
         BooleanBuilder predicate = new BooleanBuilder();
         if (param.getUsers() != null && !param.getUsers().isEmpty()) {
-            predicate.and(event.initiator.id.in(param.getUsers()));
+            predicate.and(event.initiatorId.in(param.getUsers()));
         }
         if (param.getStates() != null && !param.getStates().isEmpty()) {
             predicate.and(event.state.in(param.getStates()));
@@ -54,7 +54,7 @@ public class EventQueryDslRepositoryImpl implements EventQueryDslRepository {
 
         BooleanBuilder predicate = new BooleanBuilder();
         if (param.getUsers() != null && !param.getUsers().isEmpty()) {
-            predicate.and(event.initiator.id.in(param.getUsers()));
+            predicate.and(event.initiatorId.in(param.getUsers()));
         }
         if (param.getStates() != null && !param.getStates().isEmpty()) {
             predicate.and(event.state.in(param.getStates()));

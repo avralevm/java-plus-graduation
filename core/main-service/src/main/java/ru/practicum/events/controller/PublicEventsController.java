@@ -9,7 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.StatClient;
+import ru.practicum.client.StatFeignClient;
 import ru.practicum.dto.in.StatisticDto;
 import ru.practicum.events.dto.output.EventFullDto;
 import ru.practicum.events.dto.output.EventShortDto;
@@ -27,7 +27,7 @@ import java.util.Set;
 @Slf4j
 public class PublicEventsController {
 
-    private final StatClient statClient;
+    private final StatFeignClient statFeignClient;
     private final EventService eventService;
 
     @GetMapping("/{eventId}")
@@ -38,7 +38,7 @@ public class PublicEventsController {
                 .ip(request.getRemoteAddr())
                 .timestamp(LocalDateTime.now())
                 .build();
-        statClient.hit(statDto);
+        statFeignClient.hit(statDto);
         return eventService.getEvent(eventId);
     }
 
@@ -61,7 +61,7 @@ public class PublicEventsController {
         List<EventShortDto> eventShorts = eventService.findEvents(param);
 
         log.info("HIT request \"GET /events\" to statsService with params: {}", param);
-        statClient.hit(new StatisticDto(
+        statFeignClient.hit(new StatisticDto(
                 "main-service",
                 request.getRequestURI(),
                 request.getRemoteAddr(),

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.storage.CategoryRepository;
+import ru.practicum.client.UserAdminFeignClient;
 import ru.practicum.events.dto.in.EventRequestStatusUpdateRequest;
 import ru.practicum.events.dto.in.NewEventDto;
 import ru.practicum.events.dto.in.UpdateEventAdminRequest;
@@ -17,23 +18,24 @@ import ru.practicum.events.dto.output.SwitchRequestsStatus;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.*;
 import ru.practicum.events.storage.EventRepository;
-import ru.practicum.exceptions.ConflictException;
+import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exceptions.DateException;
 import ru.practicum.exceptions.NoHavePermissionException;
-import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.requests.dto.ParticipationRequestDtoOut;
 import ru.practicum.requests.mapper.RequestMapper;
 import ru.practicum.requests.model.Request;
 import ru.practicum.requests.model.Status;
 import ru.practicum.requests.storage.RequestRepository;
-import ru.practicum.users.model.User;
-import ru.practicum.users.storage.UserRepository;
+import ru.practicum.user.output.UserDto;
+import ru.practicum.user.output.UserShortDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ru.practicum.constants.Methods.copyFields;
@@ -44,7 +46,7 @@ import static ru.practicum.constants.Methods.copyFields;
 public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final StatClientService statClientService;
-    private final UserRepository userRepository;
+    private final UserAdminFeignClient userAdminFeignClient;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
     private final EventRepository eventRepository;
@@ -60,7 +62,7 @@ public class EventServiceImpl implements EventService {
         } else {
             category = categoryRepository.findById(request.getCategory()).orElseThrow(() -> new NotFoundException("Category not found"));
         }
-        Event newEvent = eventMapper.toEvent(request, category, event.getInitiator());
+        Event newEvent = eventMapper.toEvent(request, category, event.getInitiatorId());
         copyFields(event, newEvent);
 
         if (request.getStateAction() == null) {
@@ -82,11 +84,16 @@ public class EventServiceImpl implements EventService {
             }
             event.setState(State.CANCELED);
         }
+        Event savedEvent = eventRepository.save(event);
+        UserDto userDto = userAdminFeignClient.getById(savedEvent.getInitiatorId());
 
-        return eventMapper.toEventFullDto(eventRepository.save(event));
+        EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
+        eventFullDto.setInitiator(toUserShortDto(userDto));
+        return eventFullDto;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventFullDto getEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
@@ -94,7 +101,6 @@ public class EventServiceImpl implements EventService {
         if (event.getState() != State.PUBLISHED) {
             throw new NotFoundException("Event with id " + eventId + " has not been published");
         }
-
         return mapToFullDto(List.of(event)).getFirst();
     }
 
@@ -154,7 +160,7 @@ public class EventServiceImpl implements EventService {
     public SwitchRequestsStatus switchRequestsStatus(EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest, Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " " + "not found"));
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiatorId().equals(userId)) {
             throw new NoHavePermissionException("You do not have permission to update this event");
         }
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
@@ -226,7 +232,7 @@ public class EventServiceImpl implements EventService {
     public List<ParticipationRequestDtoOut> getRequests(Long userId, Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " " + "not found"));
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiatorId().equals(userId)) {
             throw new NoHavePermissionException("You do not have permission to update this event");
         }
 
@@ -240,7 +246,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEvent(UpdateEventUserRequest updateEventUserRequest, Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Event not found"));
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiatorId().equals(userId)) {
             throw new NoHavePermissionException("You do not have permission to update this event");
         }
         if (event.getState() == State.PUBLISHED) {
@@ -257,8 +263,8 @@ public class EventServiceImpl implements EventService {
             category = event.getCategory();
         }
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
-        Event newEvent = eventMapper.toEvent(updateEventUserRequest, category, user);
+        UserDto user = userAdminFeignClient.getById(userId);
+        Event newEvent = eventMapper.toEvent(updateEventUserRequest, category, user.getId());
 
         copyFields(event, newEvent);
         if (updateEventUserRequest.getStateAction() == StateActionForUser.SEND_TO_REVIEW) {
@@ -275,7 +281,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiatorId().equals(userId)) {
             throw new NoHavePermissionException("No allowed to access this event");
         }
         return mapToFullDto(List.of(event)).getFirst();
@@ -286,13 +292,12 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createEvent(NewEventDto newEventDto, Long userId) {
         dateValidation(newEventDto.getEventDate(), 2);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("user with id " + userId + " not found"));
+        UserDto user = userAdminFeignClient.getById(userId);
 
         Category category = categoryRepository.findById(newEventDto.getCategory())
                 .orElseThrow(() -> new NotFoundException("category with id " + newEventDto.getCategory() + " not found"));
 
-        Event event = eventMapper.toEvent(newEventDto, category, user);
+        Event event = eventMapper.toEvent(newEventDto, category, user.getId());
         if (event.getState() == null) {
             event.setState(State.PENDING);
         }
@@ -356,19 +361,33 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> rejectedRequests = getRequests(ids, Status.REJECTED);
         Map<Long, Long> views = statClientService.getEventsView(events);
 
+        List<Long> initiatorIds = events.stream()
+                .map(Event::getInitiatorId)
+                .distinct()
+                .toList();
+        Map<Long, UserDto> initiators = getUsers(initiatorIds);
+
         List<EventFullDto> eventFullDtos = events.stream()
                 .map(eventMapper::toEventFullDto).toList();
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            EventFullDto dto = eventFullDtos.get(i);
 
-        for (EventFullDto eventFullDto : eventFullDtos) {
-            eventFullDto.setConfirmedRequests(confirmedRequests.getOrDefault(eventFullDto.getId(), 0L));
+            // Устанавливаем количество подтверждённых и просмотры
+            dto.setConfirmedRequests(confirmedRequests.getOrDefault(dto.getId(), 0L));
+            dto.setViews(views.getOrDefault(dto.getId(), 0L));
 
-            eventFullDto.setViews(views.getOrDefault(eventFullDto.getId(), 0L));
-
-            if (!eventFullDto.getRequestModeration() || eventFullDto.getParticipantLimit() == 0) {
-                eventFullDto.setConfirmedRequests(eventFullDto.getConfirmedRequests() +
-                        rejectedRequests.getOrDefault(eventFullDto.getId(), 0L));
+            // Устанавливаем инициатора
+            UserDto userDto = initiators.get(event.getInitiatorId());
+            if (userDto != null) {
+                dto.setInitiator(toUserShortDto(userDto));
             }
 
+            // Дополнительная логика для requestModeration
+            if (!dto.getRequestModeration() || dto.getParticipantLimit() == 0) {
+                dto.setConfirmedRequests(dto.getConfirmedRequests() +
+                        rejectedRequests.getOrDefault(dto.getId(), 0L));
+            }
         }
 
         return eventFullDtos;
@@ -382,25 +401,44 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> rejectedRequests = getRequests(ids, Status.REJECTED);
         Map<Long, Long> views = statClientService.getEventsView(events);
 
+        List<Long> initiatorIds = events.stream()
+                .map(Event::getInitiatorId)
+                .distinct()
+                .toList();
+        Map<Long, UserDto> initiators = getUsers(initiatorIds);
+
         List<EventShortDto> eventShortDtos = events.stream()
                 .map(eventMapper::toEventShortDto).toList();
-        for (EventShortDto eventShortDto : eventShortDtos) {
-            eventShortDto.setConfirmedRequests(confirmedRequests.getOrDefault(eventShortDto.getId(), 0L));
-            eventShortDto.setViews(views.getOrDefault(eventShortDto.getId(), 0L));
-        }
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            EventShortDto dto = eventShortDtos.get(i);
 
+            dto.setConfirmedRequests(confirmedRequests.getOrDefault(dto.getId(), 0L));
+            dto.setViews(views.getOrDefault(dto.getId(), 0L));
+
+            UserDto userDto = initiators.get(event.getInitiatorId());
+            if (userDto != null) {
+                dto.setInitiator(toUserShortDto(userDto));
+            }
+        }
         return eventShortDtos;
+    }
+
+    private UserShortDto toUserShortDto(UserDto userDto) {
+        return UserShortDto.builder()
+                .id(userDto.getId())
+                .name(userDto.getName())
+                .build();
+    }
+
+    private Map<Long, UserDto> getUsers(List<Long> userIds) {
+        return userAdminFeignClient.getByIds(userIds).stream()
+                .collect(Collectors.toMap(UserDto::getId, Function.identity()));
     }
 
     private Map<Long, Long> getRequests(List<Long> events, Status status) {
         return requestRepository.countAllByEventIdInAndStatus(events, status).stream()
                 .collect(Collectors.toMap(eventId -> (Long) eventId[0],
                         requestCount -> (Long) requestCount[1]));
-    }
-
-    private Map<Long, User> getUsersByEventIds(List<Long> eventIds) {
-        return eventRepository.getUsersByEventIds(eventIds).stream()
-                .collect(Collectors.toMap(eventId -> (Long) eventId[0],
-                        user -> (User) user[1]));
     }
 }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.client.UserAdminFeignClient;
 import ru.practicum.comments.dto.in.*;
 import ru.practicum.comments.dto.output.CommentFullDto;
 import ru.practicum.comments.dto.output.CommentShortDto;
@@ -16,11 +17,10 @@ import ru.practicum.comments.storage.CommentRepository;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.State;
 import ru.practicum.events.storage.EventRepository;
-import ru.practicum.exceptions.ConflictException;
+import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.exceptions.ForbiddenException;
-import ru.practicum.exceptions.NotFoundException;
-import ru.practicum.users.model.User;
-import ru.practicum.users.storage.UserRepository;
+import ru.practicum.user.output.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,11 +31,11 @@ import java.util.List;
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final UserRepository userRepository;
+    private final UserAdminFeignClient userAdminFeignClient;
     private final EventRepository eventRepository;
 
     public CommentShortDto  create(NewCommentDto newCommentDto, Long userId, Long eventId) {
-        User user = checkUserIfExists(userId);
+        UserDto user = userAdminFeignClient.getById(userId);
         Event event = checkEventIfExists(eventId);
 
         if (event.getState() != State.PUBLISHED) {
@@ -43,7 +43,7 @@ public class CommentServiceImpl implements CommentService {
                     + event.getState().name());
         }
 
-        Comment comment = commentMapper.toComment(newCommentDto, event, user);
+        Comment comment = commentMapper.toComment(newCommentDto, event, user.getId());
         if (comment.getState() == null) {
             comment.setState(State.PENDING);
         }
@@ -53,11 +53,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public void delete(CommentParam param) {
-        checkUserIfExists(param.getUserId());
+        userAdminFeignClient.getById(param.getUserId());
         checkEventIfExists(param.getEventId());
         Comment comment = checkCommentIfExists(param.getCommentId());
 
-        if (!comment.getAuthor().getId().equals(param.getUserId())) {
+        if (!comment.getAuthorId().equals(param.getUserId())) {
             throw new ForbiddenException("User with id " + param.getUserId() + " is not author of comment " + comment.getId());
         }
 
@@ -72,11 +72,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public CommentFullDto update(NewCommentDto newComment, CommentParam param) {
-        checkUserIfExists(param.getUserId());
+        userAdminFeignClient.getById(param.getUserId());
         checkEventIfExists(param.getEventId());
         Comment existingComment = checkCommentIfExists(param.getCommentId());
 
-        if (!existingComment.getAuthor().getId().equals(param.getUserId())) {
+        if (!existingComment.getAuthorId().equals(param.getUserId())) {
             throw new ForbiddenException("User with id " + param.getUserId() + " is not author of comment " + existingComment.getId());
         }
 
@@ -120,16 +120,16 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public CommentFullDto getComment(CommentParam param) {
-        checkUserIfExists(param.getUserId());
+        userAdminFeignClient.getById(param.getUserId());
         checkEventIfExists(param.getEventId());
         Comment comment = checkCommentIfExists(param.getCommentId());
 
-        if (!comment.getAuthor().getId().equals(param.getUserId()) && comment.getState() != State.PUBLISHED) {
+        if (!comment.getAuthorId().equals(param.getUserId()) && comment.getState() != State.PUBLISHED) {
             throw new ForbiddenException("Cannot get comment with id: " + param.getEventId()
                     + " because it's not status published: " + comment.getState());
         }
 
-        if (!comment.getAuthor().getId().equals(param.getUserId())) {
+        if (!comment.getAuthorId().equals(param.getUserId())) {
             comment.setPublishedOn(null);
             comment.setState(null);
         }
@@ -143,7 +143,7 @@ public class CommentServiceImpl implements CommentService {
         Integer size = param.getSize();
         List<Comment> comments;
 
-        checkUserIfExists(param.getUserId());
+        userAdminFeignClient.getById(param.getUserId());
         checkEventIfExists(eventId);
 
         if (size == 0) {
@@ -187,8 +187,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Transactional(readOnly = true)
     public List<CommentFullDto> getComments(GetCommentParam param) {
-        checkUserIfExists(param.getUserId());
-        checkUserIfExists(param.getUserId());
+        userAdminFeignClient.getById(param.getUserId());
 
         List<Comment> comments;
         if (param.getSize() == 0) {
@@ -276,11 +275,6 @@ public class CommentServiceImpl implements CommentService {
             default -> throw new IllegalArgumentException(
                     "Parameter action must be APPROVE or REJECT, but action = " + filter);
         };
-    }
-
-    private User checkUserIfExists(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
     }
 
     private Event checkEventIfExists(Long eventId) {

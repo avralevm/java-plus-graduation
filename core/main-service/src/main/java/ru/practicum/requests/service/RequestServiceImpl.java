@@ -3,18 +3,18 @@ package ru.practicum.requests.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.client.UserAdminFeignClient;
 import ru.practicum.events.model.Event;
 import ru.practicum.events.model.State;
 import ru.practicum.events.storage.EventRepository;
-import ru.practicum.exceptions.ConflictException;
-import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exception.NotFoundException;
+import ru.practicum.exception.ConflictException;
 import ru.practicum.requests.dto.ParticipationRequestDtoOut;
 import ru.practicum.requests.mapper.RequestMapper;
 import ru.practicum.requests.model.Request;
 import ru.practicum.requests.model.Status;
 import ru.practicum.requests.storage.RequestRepository;
-import ru.practicum.users.model.User;
-import ru.practicum.users.storage.UserRepository;
+import ru.practicum.user.output.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,14 +26,14 @@ public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserAdminFeignClient userAdminFeignClient;
     private final RequestMapper requestMapper;
 
     @Override
     public List<ParticipationRequestDtoOut> findByUserId(Long userId) {
         log.info("Fetching requests for user with id: {}", userId);
 
-        findUserById(userId);
+        userAdminFeignClient.getById(userId);
 
         List<ParticipationRequestDtoOut> requests = requestRepository.findByRequesterId(userId).stream()
                 .map(requestMapper::toParticipationRequestDtoOut)
@@ -48,7 +48,7 @@ public class RequestServiceImpl implements RequestService {
     public ParticipationRequestDtoOut create(Long userId, Long eventId) {
         log.info("Creating request for user with id: {} and event with id: {}", userId, eventId);
 
-        User requester = findUserById(userId);
+        UserDto requester = userAdminFeignClient.getById(userId);
 
         Event event = eventRepository.findById(eventId).orElseThrow(() -> {
             log.warn("Event with id={} not found", eventId);
@@ -59,7 +59,7 @@ public class RequestServiceImpl implements RequestService {
 
         Request request = new Request();
         request.setEvent(event);
-        request.setRequester(requester);
+        request.setRequesterId(userId);
         request.setCreated(LocalDateTime.now());
         request.setStatus(event.getParticipantLimit() == 0 ? Status.CONFIRMED : Status.PENDING);
 
@@ -81,7 +81,7 @@ public class RequestServiceImpl implements RequestService {
             return new NotFoundException(String.format("Request with id=%d was not found", requestId));
         });
 
-        if (!request.getRequester().getId().equals(userId)) {
+        if (!request.getRequesterId().equals(userId)) {
             log.warn("User with id={} cannot cancel non-his request with id={}", userId, requestId);
             throw new ConflictException(String.format(
                     "User with id=%d cannot cancel non-his request with id=%d", userId, requestId));
@@ -94,14 +94,14 @@ public class RequestServiceImpl implements RequestService {
         return requestMapper.toParticipationRequestDtoOut(updatedRequest);
     }
 
-    private void validateRequestCreation(User requester, Event event) {
+    private void validateRequestCreation(UserDto requester, Event event) {
         if (requestRepository.existsByRequesterIdAndEventId(requester.getId(), event.getId())) {
             log.warn("Request already exists for user with id={} and event with id={}", requester.getId(), event.getId());
             throw new ConflictException(String.format(
                     "Request already exists for user with id=%d and event with id=%d", requester.getId(), event.getId()));
         }
 
-        if (event.getInitiator().getId().equals(requester.getId())) {
+        if (event.getInitiatorId().equals(requester.getId())) {
             log.warn("Event initiator with id={} cannot create a request for his event with id={}", requester.getId(), event.getId());
             throw new ConflictException(String.format(
                     "Event initiator with id=%d cannot create a request for his event with id=%d", requester.getId(), event.getId()));
@@ -118,12 +118,5 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException(String.format("Participant limit reached for event with id=%d", event.getId()));
         }
 
-    }
-
-    private User findUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> {
-            log.warn("User with id={} not found", userId);
-            return new NotFoundException("User with id=" + userId + " was not found");
-        });
     }
 }

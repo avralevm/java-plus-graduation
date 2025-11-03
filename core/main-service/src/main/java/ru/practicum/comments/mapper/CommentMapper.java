@@ -8,20 +8,18 @@ import ru.practicum.comments.dto.output.CommentShortDto;
 import ru.practicum.comments.model.Comment;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.Event;
-import ru.practicum.users.mapper.UserMapper;
-import ru.practicum.users.model.User;
 
-@Mapper(componentModel = "spring", uses = {EventMapper.class, UserMapper.class})
+@Mapper(componentModel = "spring", uses = {EventMapper.class})
 public interface CommentMapper {
 
     @Mapping(target = "event", source = "event")
-    @Mapping(target = "author", source = "user")
+    @Mapping(target = "authorId", source = "authorId")
     @Mapping(target = "createdOn", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "modifiedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "id", ignore = true)
-    Comment toComment(NewCommentDto commentDto, Event event, User user);
+    Comment toComment(NewCommentDto commentDto, Event event, Long authorId);
 
     CommentFullDto toCommentDto(Comment comment);
 

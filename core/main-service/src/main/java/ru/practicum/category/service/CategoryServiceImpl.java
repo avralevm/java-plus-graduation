@@ -12,9 +12,9 @@ import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.storage.CategoryRepository;
 import ru.practicum.events.storage.EventRepository;
-import ru.practicum.exceptions.ConflictException;
-import ru.practicum.exceptions.DuplicateException;
-import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exception.ConflictException;
+import ru.practicum.exception.DuplicateException;
+import ru.practicum.exception.NotFoundException;
 
 import java.util.List;
 

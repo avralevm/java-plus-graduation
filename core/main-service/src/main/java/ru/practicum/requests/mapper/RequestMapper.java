@@ -9,6 +9,6 @@ import ru.practicum.requests.model.Request;
 public interface RequestMapper {
 
     @Mapping(source = "event.id", target = "event")
-    @Mapping(source = "requester.id", target = "requester")
+    @Mapping(source = "requesterId", target = "requester")
     ParticipationRequestDtoOut toParticipationRequestDtoOut(Request request);
 }
