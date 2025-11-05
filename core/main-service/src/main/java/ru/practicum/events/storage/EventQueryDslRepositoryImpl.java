@@ -6,6 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import ru.practicum.event.state.State;
 import ru.practicum.events.model.*;
 
 import java.time.LocalDateTime;

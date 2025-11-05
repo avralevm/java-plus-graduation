@@ -11,8 +11,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatFeignClient;
 import ru.practicum.dto.in.StatisticDto;
-import ru.practicum.events.dto.output.EventFullDto;
-import ru.practicum.events.dto.output.EventShortDto;
+import ru.practicum.event.output.EventFullDto;
+import ru.practicum.event.output.EventShortDto;
 import ru.practicum.events.model.EventPublicParam;
 import ru.practicum.events.service.EventService;
 
@@ -26,7 +26,6 @@ import java.util.Set;
 @Validated
 @Slf4j
 public class PublicEventsController {
-
     private final StatFeignClient statFeignClient;
     private final EventService eventService;
 

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.category.dto.output.CategoryDto;
+import ru.practicum.category.output.CategoryDto;
 import ru.practicum.category.service.CategoryService;
 
 import java.util.List;

@@ -3,11 +3,11 @@ package ru.practicum.events.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.category.model.Category;
-import ru.practicum.events.dto.in.NewEventDto;
-import ru.practicum.events.dto.in.UpdateEventAdminRequest;
-import ru.practicum.events.dto.in.UpdateEventUserRequest;
-import ru.practicum.events.dto.output.EventFullDto;
-import ru.practicum.events.dto.output.EventShortDto;
+import ru.practicum.event.in.NewEventDto;
+import ru.practicum.event.in.UpdateEventAdminRequest;
+import ru.practicum.event.in.UpdateEventUserRequest;
+import ru.practicum.event.output.EventFullDto;
+import ru.practicum.event.output.EventShortDto;
 import ru.practicum.events.model.Event;
 
 @Mapper(componentModel = "spring")

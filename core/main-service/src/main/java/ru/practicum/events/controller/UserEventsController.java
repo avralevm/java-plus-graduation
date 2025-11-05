@@ -5,14 +5,14 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.events.dto.in.EventRequestStatusUpdateRequest;
-import ru.practicum.events.dto.in.NewEventDto;
-import ru.practicum.events.dto.in.UpdateEventUserRequest;
-import ru.practicum.events.dto.output.EventFullDto;
-import ru.practicum.events.dto.output.EventShortDto;
-import ru.practicum.events.dto.output.SwitchRequestsStatus;
+import ru.practicum.event.in.EventRequestStatusUpdateRequest;
+import ru.practicum.event.in.NewEventDto;
+import ru.practicum.event.in.UpdateEventUserRequest;
+import ru.practicum.event.output.EventFullDto;
+import ru.practicum.event.output.EventShortDto;
+import ru.practicum.event.output.SwitchRequestsStatus;
 import ru.practicum.events.service.EventServiceImpl;
-import ru.practicum.requests.dto.ParticipationRequestDtoOut;
+import ru.practicum.request.output.ParticipationRequestDtoOut;
 
 import java.util.List;
 

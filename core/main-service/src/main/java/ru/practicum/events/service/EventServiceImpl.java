@@ -7,14 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.storage.CategoryRepository;
+import ru.practicum.client.RequestFeignClient;
 import ru.practicum.client.UserAdminFeignClient;
-import ru.practicum.events.dto.in.EventRequestStatusUpdateRequest;
-import ru.practicum.events.dto.in.NewEventDto;
-import ru.practicum.events.dto.in.UpdateEventAdminRequest;
-import ru.practicum.events.dto.in.UpdateEventUserRequest;
-import ru.practicum.events.dto.output.EventFullDto;
-import ru.practicum.events.dto.output.EventShortDto;
-import ru.practicum.events.dto.output.SwitchRequestsStatus;
+import ru.practicum.event.in.EventRequestStatusUpdateRequest;
+import ru.practicum.event.in.NewEventDto;
+import ru.practicum.event.in.UpdateEventAdminRequest;
+import ru.practicum.event.in.UpdateEventUserRequest;
+import ru.practicum.event.output.EventFullDto;
+import ru.practicum.event.output.EventShortDto;
+import ru.practicum.event.output.SwitchRequestsStatus;
+import ru.practicum.event.state.State;
+import ru.practicum.event.state.StateActionForAdmin;
+import ru.practicum.event.state.StateActionForUser;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.*;
 import ru.practicum.events.storage.EventRepository;
@@ -22,11 +26,9 @@ import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exceptions.DateException;
 import ru.practicum.exceptions.NoHavePermissionException;
-import ru.practicum.requests.dto.ParticipationRequestDtoOut;
-import ru.practicum.requests.mapper.RequestMapper;
-import ru.practicum.requests.model.Request;
-import ru.practicum.requests.model.Status;
-import ru.practicum.requests.storage.RequestRepository;
+import ru.practicum.request.output.EventRequestCountDto;
+import ru.practicum.request.output.ParticipationRequestDtoOut;
+import ru.practicum.request.Status;
 import ru.practicum.user.output.UserDto;
 import ru.practicum.user.output.UserShortDto;
 
@@ -45,12 +47,12 @@ import static ru.practicum.constants.Methods.copyFields;
 @Slf4j
 public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
-    private final StatClientService statClientService;
-    private final UserAdminFeignClient userAdminFeignClient;
     private final CategoryRepository categoryRepository;
-    private final RequestRepository requestRepository;
     private final EventRepository eventRepository;
-    private final RequestMapper requestMapper;
+
+    private final UserAdminFeignClient userAdminFeignClient;
+    private final StatClientService statClientService;
+    private final RequestFeignClient requestFeignClient;
 
     @Transactional
     @Override
@@ -99,7 +101,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
         if (event.getState() != State.PUBLISHED) {
-            throw new NotFoundException("Event with id " + eventId + " has not been published");
+            throw new ConflictException("Event with id " + eventId + " has not been published"); // TODO: Могут быть проблемы (NotFoundedException)
         }
         return mapToFullDto(List.of(event)).getFirst();
     }
@@ -157,73 +159,38 @@ public class EventServiceImpl implements EventService {
 
     @Transactional
     @Override
-    public SwitchRequestsStatus switchRequestsStatus(EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest, Long eventId, Long userId) {
+    public SwitchRequestsStatus switchRequestsStatus(EventRequestStatusUpdateRequest updateRequest, Long eventId, Long userId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " " + "not found"));
         if (!event.getInitiatorId().equals(userId)) {
             throw new NoHavePermissionException("You do not have permission to update this event");
         }
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
-            return new SwitchRequestsStatus(requestRepository.findAllByIdIn(eventRequestStatusUpdateRequest.getRequestIds()).stream()
-                    .map(requestMapper::toParticipationRequestDtoOut)
-                    .toList(),
-                    List.of());
+            List<ParticipationRequestDtoOut> requests = requestFeignClient.getByIds(updateRequest.getRequestIds());
+            return new SwitchRequestsStatus(requests, List.of());
         }
 
         EventFullDto eventFullDto = mapToFullDto(List.of(event)).getFirst();
 
-
-        if (eventRequestStatusUpdateRequest.getStatus() == Status.CONFIRMED) {
-            int freeLimit = (int) Math.min(eventFullDto.getParticipantLimit() - eventFullDto.getConfirmedRequests(), eventRequestStatusUpdateRequest.getRequestIds().size());
+        if (updateRequest.getStatus() == Status.CONFIRMED) {
+            int freeLimit = (int) Math.min(eventFullDto.getParticipantLimit() - eventFullDto.getConfirmedRequests(),
+                    updateRequest.getRequestIds().size());
             if (freeLimit <= 0) {
                 throw new ConflictException("The participant limit has been reached");
             }
 
-            List<Long> confirmedIds = eventRequestStatusUpdateRequest.getRequestIds().subList(0,
-                    freeLimit);
-            List<Long> rejectedIds = eventRequestStatusUpdateRequest.getRequestIds().subList(freeLimit,
-                    eventRequestStatusUpdateRequest.getRequestIds().size());
+            List<Long> confirmedIds = updateRequest.getRequestIds().subList(0, freeLimit);
+            List<Long> rejectedIds = updateRequest.getRequestIds().subList(freeLimit, updateRequest.getRequestIds().size());
 
-            List<Request> requests = requestRepository.findAllByIdIn(eventRequestStatusUpdateRequest.getRequestIds());
+            List<ParticipationRequestDtoOut> confirmed = requestFeignClient.setStatusForAllByIds(confirmedIds, Status.CONFIRMED);
 
-            List<ParticipationRequestDtoOut> rejected = requests.stream()
-                    .filter(obj -> rejectedIds.contains(obj.getId()))
-                    .peek(obj -> {
-                        if (obj.getStatus() == Status.CONFIRMED) {
-                            throw new ConflictException("Request with id " + obj.getId() + " has been confirmed. It cannot be rejected ");
-                        }
-                    })
-                    .map(requestMapper::toParticipationRequestDtoOut)
-                    .peek(obj -> obj.setStatus(Status.REJECTED))
-                    .toList();
-
-            List<ParticipationRequestDtoOut> confirmed = requests.stream()
-                    .filter(obj -> confirmedIds.contains(obj.getId()))
-                    .peek(obj -> {
-                        if (obj.getStatus() == Status.REJECTED) {
-                            throw new ConflictException("Request with id " + obj.getId() + " has been confirmed. It cannot be rejected ");
-                        }
-                    })
-                    .map(requestMapper::toParticipationRequestDtoOut)
-                    .peek(obj -> obj.setStatus(Status.CONFIRMED))
-                    .toList();
-
-            requestRepository.setStatusForAllByIdIn(rejectedIds, Status.REJECTED);
-            requestRepository.setStatusForAllByIdIn(confirmedIds, Status.CONFIRMED);
+            List<ParticipationRequestDtoOut> rejected =
+                    requestFeignClient.setStatusForAllByIds(rejectedIds, Status.REJECTED);
 
             return new SwitchRequestsStatus(confirmed, rejected);
         } else {
-            List<ParticipationRequestDtoOut> rejected = requestRepository.findAllByIdIn(eventRequestStatusUpdateRequest.getRequestIds())
-                    .stream()
-                    .peek(obj -> {
-                        if (obj.getStatus() == Status.CONFIRMED) {
-                            throw new ConflictException("Request with id " + obj.getId() + " has been confirmed. It cannot be rejected ");
-                        }
-                    })
-                    .map(requestMapper::toParticipationRequestDtoOut)
-                    .peek(obj -> obj.setStatus(Status.REJECTED))
-                    .toList();
-            requestRepository.setStatusForAllByIdIn(eventRequestStatusUpdateRequest.getRequestIds(), Status.REJECTED);
+            List<ParticipationRequestDtoOut> rejected =
+                    requestFeignClient.setStatusForAllByIds(updateRequest.getRequestIds(), Status.REJECTED);
             return new SwitchRequestsStatus(List.of(), rejected);
         }
     }
@@ -236,11 +203,7 @@ public class EventServiceImpl implements EventService {
             throw new NoHavePermissionException("You do not have permission to update this event");
         }
 
-        List<Request> requests = requestRepository.findAllByEventId(eventId);
-
-        return requests.stream()
-                .map(requestMapper::toParticipationRequestDtoOut)
-                .toList();
+        return requestFeignClient.getByEventId(eventId);
     }
 
     @Override
@@ -368,7 +331,9 @@ public class EventServiceImpl implements EventService {
         Map<Long, UserDto> initiators = getUsers(initiatorIds);
 
         List<EventFullDto> eventFullDtos = events.stream()
-                .map(eventMapper::toEventFullDto).toList();
+                .map(eventMapper::toEventFullDto)
+                .toList();
+
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             EventFullDto dto = eventFullDtos.get(i);
@@ -437,8 +402,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getRequests(List<Long> events, Status status) {
-        return requestRepository.countAllByEventIdInAndStatus(events, status).stream()
-                .collect(Collectors.toMap(eventId -> (Long) eventId[0],
-                        requestCount -> (Long) requestCount[1]));
+        return requestFeignClient.getRequestCountsByEventIds(events, status).stream()
+                .collect(Collectors.toMap(EventRequestCountDto::getEventId, EventRequestCountDto::getCount));
     }
 }

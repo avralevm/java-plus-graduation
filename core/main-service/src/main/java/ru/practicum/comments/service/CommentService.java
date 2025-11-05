@@ -1,8 +1,8 @@
 package ru.practicum.comments.service;
 
-import ru.practicum.comments.dto.in.*;
-import ru.practicum.comments.dto.output.CommentFullDto;
-import ru.practicum.comments.dto.output.CommentShortDto;
+import ru.practicum.comment.in.*;
+import ru.practicum.comment.output.CommentFullDto;
+import ru.practicum.comment.output.CommentShortDto;
 
 import java.util.List;
 

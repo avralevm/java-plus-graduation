@@ -1,7 +1,7 @@
 package ru.practicum.category.service;
 
-import ru.practicum.category.dto.in.NewCategoryDto;
-import ru.practicum.category.dto.output.CategoryDto;
+import ru.practicum.category.in.NewCategoryDto;
+import ru.practicum.category.output.CategoryDto;
 
 import java.util.List;
 

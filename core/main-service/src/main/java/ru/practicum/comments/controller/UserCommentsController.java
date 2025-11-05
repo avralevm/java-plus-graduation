@@ -6,12 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.comments.dto.in.CommentParam;
-import ru.practicum.comments.dto.in.GetCommentParam;
-import ru.practicum.comments.dto.in.NewCommentDto;
-import ru.practicum.comments.dto.output.CommentFullDto;
-import ru.practicum.comments.dto.output.CommentShortDto;
-import ru.practicum.comments.model.StateFilter;
+import ru.practicum.comment.in.CommentParam;
+import ru.practicum.comment.in.GetCommentParam;
+import ru.practicum.comment.in.NewCommentDto;
+import ru.practicum.comment.output.CommentFullDto;
+import ru.practicum.comment.output.CommentShortDto;
+import ru.practicum.comment.StateFilter;
 import ru.practicum.comments.service.CommentService;
 
 import java.util.List;

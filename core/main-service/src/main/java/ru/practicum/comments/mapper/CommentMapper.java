@@ -2,9 +2,9 @@ package ru.practicum.comments.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.comments.dto.in.NewCommentDto;
-import ru.practicum.comments.dto.output.CommentFullDto;
-import ru.practicum.comments.dto.output.CommentShortDto;
+import ru.practicum.comment.in.NewCommentDto;
+import ru.practicum.comment.output.CommentFullDto;
+import ru.practicum.comment.output.CommentShortDto;
 import ru.practicum.comments.model.Comment;
 import ru.practicum.events.mapper.EventMapper;
 import ru.practicum.events.model.Event;

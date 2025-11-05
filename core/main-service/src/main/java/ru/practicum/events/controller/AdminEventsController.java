@@ -5,10 +5,10 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.events.dto.in.UpdateEventAdminRequest;
-import ru.practicum.events.dto.output.EventFullDto;
+import ru.practicum.event.in.UpdateEventAdminRequest;
+import ru.practicum.event.output.EventFullDto;
 import ru.practicum.events.model.EventAdminParam;
-import ru.practicum.events.model.State;
+import ru.practicum.event.state.State;
 import ru.practicum.events.service.EventService;
 
 import java.time.LocalDateTime;

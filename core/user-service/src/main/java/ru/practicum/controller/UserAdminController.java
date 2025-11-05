@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import ru.practicum.client.UserAdminFeignClient;
 import ru.practicum.service.UserService;
 import ru.practicum.user.in.NewUserRequest;
 import ru.practicum.user.in.UserAdminParam;
@@ -19,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/admin/users")
-public class UserAdminController implements UserAdminFeignClient {
+public class UserAdminController {
     private final UserService service;
 
     @GetMapping
@@ -28,18 +27,6 @@ public class UserAdminController implements UserAdminFeignClient {
                                 @PositiveOrZero @RequestParam(required = false, defaultValue = "0") @Min(0) int from,
                                 @Positive @RequestParam(required = false, defaultValue = "10") @Min(0) int size) {
         return service.getAll(new UserAdminParam(ids, from, size));
-    }
-
-    @GetMapping("/by-ids")
-    @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> getByIds(@RequestParam List<Long> ids) {
-        return service.getByIds(ids);
-    }
-
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public UserDto getById(@PathVariable("id") Long id) {
-        return service.getById(id);
     }
 
     @PostMapping

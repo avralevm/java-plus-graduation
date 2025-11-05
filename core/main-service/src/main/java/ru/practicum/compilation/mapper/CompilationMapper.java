@@ -1,9 +1,9 @@
 package ru.practicum.compilation.mapper;
 
 import org.mapstruct.*;
-import ru.practicum.compilation.dto.in.NewCompilationDto;
-import ru.practicum.compilation.dto.in.UpdateCompilationRequest;
-import ru.practicum.compilation.dto.output.CompilationDto;
+import ru.practicum.compilation.in.NewCompilationDto;
+import ru.practicum.compilation.in.UpdateCompilationRequest;
+import ru.practicum.compilation.output.CompilationDto;
 import ru.practicum.compilation.model.Compilation;
 import ru.practicum.events.model.Event;
 

@@ -65,8 +65,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     @Override
     public List<UserDto> getByIds(List<Long> ids) {
-        List<User> users = repository.findAllByIdIn(ids);
-        return users.stream()
+        return repository.findAllByIdIn(ids).stream()
                 .map(mapper::toUserDto)
                 .toList();
     }

@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.comments.dto.in.CommentAdminParam;
-import ru.practicum.comments.dto.output.CommentFullDto;
-import ru.practicum.comments.model.StateFilter;
+import ru.practicum.comment.in.CommentAdminParam;
+import ru.practicum.comment.output.CommentFullDto;
+import ru.practicum.comment.StateFilter;
 import ru.practicum.comments.service.CommentService;
 
 import java.time.LocalDateTime;
