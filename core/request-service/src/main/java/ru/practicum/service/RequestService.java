@@ -1,6 +1,5 @@
 package ru.practicum.service;
 
-import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.request.Status;
 import ru.practicum.request.output.EventRequestCountDto;
 import ru.practicum.request.output.ParticipationRequestDtoOut;

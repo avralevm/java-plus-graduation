@@ -1,4 +1,4 @@
-package ru.practicum.comments.controller;
+package ru.practicum.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -12,7 +12,7 @@ import ru.practicum.comment.in.NewCommentDto;
 import ru.practicum.comment.output.CommentFullDto;
 import ru.practicum.comment.output.CommentShortDto;
 import ru.practicum.comment.StateFilter;
-import ru.practicum.comments.service.CommentService;
+import ru.practicum.service.CommentService;
 
 import java.util.List;
 

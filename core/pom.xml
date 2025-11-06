@@ -17,6 +17,7 @@
         <module>user-service</module>
         <module>interation-api</module>
         <module>request-service</module>
+        <module>comment-service</module>
     </modules>
 
 </project>

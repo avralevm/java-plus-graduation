@@ -20,6 +20,12 @@ public interface EventService {
 
     EventFullDto getEvent(Long eventId);
 
+    EventFullDto getEvenFullById(Long eventId);
+
+    EventShortDto getEventShortById(Long eventId);
+
+    List<EventShortDto> getEventByIds(List<Long> eventIds);
+
     List<EventShortDto> findEvents(EventPublicParam param);
 
     SwitchRequestsStatus switchRequestsStatus(EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest, Long eventId, Long userId);

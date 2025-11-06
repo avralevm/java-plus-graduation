@@ -1,4 +1,4 @@
-package ru.practicum.comments.controller;
+package ru.practicum.controller;
 
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.comment.in.CommentAdminParam;
 import ru.practicum.comment.output.CommentFullDto;
 import ru.practicum.comment.StateFilter;
-import ru.practicum.comments.service.CommentService;
+import ru.practicum.service.CommentService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,4 +50,3 @@ public class AdminCommentsController {
         commentService.delete(commentId);
     }
 }
-

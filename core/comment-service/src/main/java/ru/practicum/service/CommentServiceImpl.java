@@ -1,29 +1,31 @@
-
-package ru.practicum.comments.service;
+package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.client.EventFeignClient;
 import ru.practicum.client.UserAdminFeignClient;
 import ru.practicum.comment.in.*;
 import ru.practicum.comment.output.CommentFullDto;
 import ru.practicum.comment.output.CommentShortDto;
-import ru.practicum.comments.mapper.CommentMapper;
-import ru.practicum.comments.model.Comment;
+import ru.practicum.event.output.EventShortDto;
+import ru.practicum.exception.ForbiddenException;
+import ru.practicum.mapper.CommentMapper;
+import ru.practicum.model.Comment;
 import ru.practicum.comment.StateFilter;
-import ru.practicum.comments.storage.CommentRepository;
-import ru.practicum.events.model.Event;
+import ru.practicum.storage.CommentRepository;
 import ru.practicum.event.state.State;
-import ru.practicum.events.storage.EventRepository;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exceptions.ForbiddenException;
 import ru.practicum.user.output.UserDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,29 +34,25 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UserAdminFeignClient userAdminFeignClient;
-    private final EventRepository eventRepository;
+    private final EventFeignClient eventFeignClient;
 
-    public CommentShortDto  create(NewCommentDto newCommentDto, Long userId, Long eventId) {
+    public CommentShortDto create(NewCommentDto newCommentDto, Long userId, Long eventId) {
         UserDto user = userAdminFeignClient.getById(userId);
-        Event event = checkEventIfExists(eventId);
+        EventShortDto event = eventFeignClient.getEventShortById(eventId);
 
-        if (event.getState() != State.PUBLISHED) {
-            throw new ConflictException("Cannot add comment because the event it's not status published : "
-                    + event.getState().name());
-        }
-
-        Comment comment = commentMapper.toComment(newCommentDto, event, user.getId());
+        Comment comment = commentMapper.toComment(newCommentDto, event.getId(), user.getId());
         if (comment.getState() == null) {
             comment.setState(State.PENDING);
         }
         comment = commentRepository.save(comment);
 
-        return commentMapper.toCommentShortDto(comment);
+        return commentMapper.toCommentShortDto(comment, user, event);
     }
 
     public void delete(CommentParam param) {
         userAdminFeignClient.getById(param.getUserId());
-        checkEventIfExists(param.getEventId());
+        eventFeignClient.getEventShortById(param.getEventId());
+
         Comment comment = checkCommentIfExists(param.getCommentId());
 
         if (!comment.getAuthorId().equals(param.getUserId())) {
@@ -72,8 +70,9 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public CommentFullDto update(NewCommentDto newComment, CommentParam param) {
-        userAdminFeignClient.getById(param.getUserId());
-        checkEventIfExists(param.getEventId());
+        UserDto user = userAdminFeignClient.getById(param.getUserId());
+        EventShortDto event = eventFeignClient.getEventShortById(param.getEventId());
+
         Comment existingComment = checkCommentIfExists(param.getCommentId());
 
         if (!existingComment.getAuthorId().equals(param.getUserId())) {
@@ -92,11 +91,10 @@ public class CommentServiceImpl implements CommentService {
         Comment updatedComment = commentRepository.save(existingComment);
         log.info("Comment was updated with id={}, old name='{}', new name='{}'",
                 param.getCommentId(), existingComment.getText(), newComment.getText());
-        return commentMapper.toCommentDto(updatedComment);
+        return commentMapper.toCommentDto(updatedComment, user, event);
     }
 
     public CommentFullDto update(Long commentId, String filter) {
-
         State stateForUpdating = toState(filter);
         Comment existingComment = checkCommentIfExists(commentId);
 
@@ -115,13 +113,18 @@ public class CommentServiceImpl implements CommentService {
         }
 
         Comment updatedComment = commentRepository.save(existingComment);
+
+        UserDto user = userAdminFeignClient.getById(updatedComment.getAuthorId());
+        EventShortDto event = eventFeignClient.getEventShortById(updatedComment.getEventId());
+
         log.info("Comment with id={} was updated with status {}", commentId, stateForUpdating);
-        return commentMapper.toCommentDto(updatedComment);
+        return commentMapper.toCommentDto(updatedComment, user, event);
     }
 
     public CommentFullDto getComment(CommentParam param) {
-        userAdminFeignClient.getById(param.getUserId());
-        checkEventIfExists(param.getEventId());
+        UserDto user = userAdminFeignClient.getById(param.getUserId());
+        EventShortDto event = eventFeignClient.getEventShortById(param.getEventId());
+
         Comment comment = checkCommentIfExists(param.getCommentId());
 
         if (!comment.getAuthorId().equals(param.getUserId()) && comment.getState() != State.PUBLISHED) {
@@ -133,7 +136,7 @@ public class CommentServiceImpl implements CommentService {
             comment.setPublishedOn(null);
             comment.setState(null);
         }
-        return commentMapper.toCommentDto(comment);
+        return commentMapper.toCommentDto(comment, user, event);
     }
 
     @Transactional(readOnly = true)
@@ -143,8 +146,8 @@ public class CommentServiceImpl implements CommentService {
         Integer size = param.getSize();
         List<Comment> comments;
 
-        userAdminFeignClient.getById(param.getUserId());
-        checkEventIfExists(eventId);
+        EventShortDto event = eventFeignClient.getEventShortById(eventId);
+        UserDto user = userAdminFeignClient.getById(userId);
 
         if (size == 0) {
             comments = commentRepository.findByEventIdAndAuthorIdAndState(userId, eventId, State.PUBLISHED).stream()
@@ -156,15 +159,15 @@ public class CommentServiceImpl implements CommentService {
         } else {
             return List.of();
         }
+
         return comments.stream()
-                .map(commentMapper::toCommentDto)
+                .map(comment -> commentMapper.toCommentDto(comment, user, event))
                 .toList();
     }
 
-
     @Transactional(readOnly = true)
     public List<CommentFullDto> getCommentsByEventId(CommentPublicParam param) {
-        checkEventIfExists(param.getEventId());
+        EventShortDto event = eventFeignClient.getEventShortById(param.getEventId());
 
         Integer from = param.getFrom();
         Integer size = param.getSize();
@@ -180,14 +183,22 @@ public class CommentServiceImpl implements CommentService {
         } else {
             return List.of();
         }
+
+        List<Long> userIds = comments.stream()
+                .map(Comment::getAuthorId)
+                .distinct()
+                .toList();
+        List<UserDto> users = userAdminFeignClient.getByIds(userIds);
+        Map<Long, UserDto> userMap = users.stream().collect(Collectors.toMap(UserDto::getId, Function.identity()));
+
         return comments.stream()
-                .map(commentMapper::toCommentDto)
+                .map(comment -> commentMapper.toCommentDto(comment, userMap.get(comment.getAuthorId()), event))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<CommentFullDto> getComments(GetCommentParam param) {
-        userAdminFeignClient.getById(param.getUserId());
+        UserDto user = userAdminFeignClient.getById(param.getUserId());
 
         List<Comment> comments;
         if (param.getSize() == 0) {
@@ -198,14 +209,19 @@ public class CommentServiceImpl implements CommentService {
             return List.of();
         }
 
+        List<Long> eventIds = comments.stream()
+                .map(Comment::getEventId)
+                .distinct()
+                .toList();
+        Map<Long, EventShortDto> eventMap = getEvents(eventIds);
+
         return comments.stream()
-                .map(commentMapper::toCommentDto)
+                .map(comment -> commentMapper.toCommentDto(comment, user, eventMap.get(comment.getEventId())))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<CommentFullDto> getComments(CommentAdminParam param) {
-
         dateValidation(param);
 
         List<Comment> comments;
@@ -217,9 +233,30 @@ public class CommentServiceImpl implements CommentService {
             return List.of();
         }
 
-        return comments.stream()
-                .map(commentMapper::toCommentDto)
+        List<Long> userIds = comments.stream()
+                .map(Comment::getAuthorId)
+                .distinct()
                 .toList();
+        Map<Long, UserDto> userMap = getUsers(userIds);
+
+        List<Long> eventIds = comments.stream()
+                .map(Comment::getEventId)
+                .distinct()
+                .toList();
+        Map<Long, EventShortDto> eventMap = getEvents(eventIds);
+        return comments.stream()
+                .map(comment -> commentMapper.toCommentDto(comment, userMap.get(comment.getAuthorId()), eventMap.get(comment.getEventId())))
+                .toList();
+    }
+
+    private Map<Long, UserDto> getUsers(List<Long> userIds) {
+        return userAdminFeignClient.getByIds(userIds).stream()
+                .collect(Collectors.toMap(UserDto::getId, Function.identity()));
+    }
+
+    private Map<Long, EventShortDto> getEvents(List<Long> eventIds) {
+        return eventFeignClient.getEventByIds(eventIds).stream()
+                .collect(Collectors.toMap(EventShortDto::getId, Function.identity()));
     }
 
     private List<Comment> getCommentsWithoutPagination(GetCommentParam param) {
@@ -240,7 +277,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private List<Comment> getCommentsWithoutPagination(CommentAdminParam param) {
-
         List<Comment> result = param.getStatus() == StateFilter.ALL
                 ? commentRepository.findByCreatedOnBetween(param.getStart(), param.getEnd())
                 : commentRepository.findByStateAndCreatedOnBetween(
@@ -275,11 +311,6 @@ public class CommentServiceImpl implements CommentService {
             default -> throw new IllegalArgumentException(
                     "Parameter action must be APPROVE or REJECT, but action = " + filter);
         };
-    }
-
-    private Event checkEventIfExists(Long eventId) {
-        return eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event not found: " + eventId));
     }
 
     private Comment checkCommentIfExists(Long commentId) {

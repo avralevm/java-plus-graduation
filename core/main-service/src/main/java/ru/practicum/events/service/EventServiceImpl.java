@@ -101,9 +101,39 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
         if (event.getState() != State.PUBLISHED) {
-            throw new ConflictException("Event with id " + eventId + " has not been published"); // TODO: Могут быть проблемы (NotFoundedException)
+            throw new NotFoundException("Event with id " + eventId + " has not been published");
         }
         return mapToFullDto(List.of(event)).getFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventFullDto getEvenFullById(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+
+        if (event.getState() != State.PUBLISHED) {
+            throw new ConflictException("Event with id " + eventId + " has not been published");
+        }
+        return mapToFullDto(List.of(event)).getFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventShortDto getEventShortById(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+
+        if (event.getState() != State.PUBLISHED) {
+            throw new ConflictException("Event with id " + eventId + " has not been published");
+        }
+        return mapToShortDto(List.of(event)).getFirst();
+    }
+
+    @Override
+    public List<EventShortDto> getEventByIds(List<Long> eventIds) {
+        List<Event> events = eventRepository.findAllById(eventIds);
+        return mapToShortDto(events);
     }
 
     @Transactional(readOnly = true)

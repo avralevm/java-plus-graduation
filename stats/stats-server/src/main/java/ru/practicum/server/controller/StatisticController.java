@@ -28,7 +28,7 @@ public class StatisticController implements StatFeignClient {
     }
 
     @GetMapping("/stats")
-    public List<GetStatisticDto> getStats (
+    public List<GetStatisticDto> getStats(
             @RequestParam LocalDateTime start,
             @RequestParam LocalDateTime end,
             @RequestParam(required = false, defaultValue = "") List<String> uris,

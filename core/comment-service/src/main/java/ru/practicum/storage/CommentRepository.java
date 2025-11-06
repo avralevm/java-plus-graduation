@@ -1,8 +1,8 @@
-package ru.practicum.comments.storage;
+package ru.practicum.storage;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.practicum.comments.model.Comment;
+import ru.practicum.model.Comment;
 import ru.practicum.event.state.State;
 
 import java.time.LocalDateTime;

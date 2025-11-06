@@ -37,14 +37,3 @@ CREATE TABLE IF NOT EXISTS compilation_events (
     event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     PRIMARY KEY (compilation_id, event_id)
 );
-
-CREATE TABLE IF NOT EXISTS comments (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    text VARCHAR(7000) NOT NULL,
-    event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    author_id BIGINT NOT NULL,
-    created_on TIMESTAMP NOT NULL,
-    published_on TIMESTAMP,
-    modified_on TIMESTAMP,
-    state VARCHAR NOT NULL DEFAULT 'PENDING' CHECK (state IN ('PENDING', 'PUBLISHED', 'CANCELED'))
-);

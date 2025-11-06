@@ -86,7 +86,7 @@ public class RequestServiceImpl implements RequestService {
 
         UserDto requester = userAdminFeignClient.getById(userId);
 
-        EventFullDto event = eventFeignClient.getEventById(eventId);
+        EventFullDto event = eventFeignClient.getEventFullById(eventId);
 
         validateRequestCreation(requester, event);
 

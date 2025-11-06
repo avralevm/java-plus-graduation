@@ -10,14 +10,12 @@ import ru.practicum.server.model.Statistic;
 import ru.practicum.server.storage.StatisticRepository;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class StatisticServiceImpl implements StatisticService {
-
     private final StatisticRepository repository;
     private final StatisticMapper mapper;
 

@@ -1,4 +1,4 @@
-package ru.practicum.comments.service;
+package ru.practicum.service;
 
 import ru.practicum.comment.in.*;
 import ru.practicum.comment.output.CommentFullDto;

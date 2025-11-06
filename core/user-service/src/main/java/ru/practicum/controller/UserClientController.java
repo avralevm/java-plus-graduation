@@ -1,6 +1,7 @@
 package ru.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.UserAdminFeignClient;
@@ -17,7 +18,7 @@ public class UserClientController implements UserAdminFeignClient {
 
     @GetMapping("/by-ids")
     @ResponseStatus(HttpStatus.OK)
-    public List<UserDto> getByIds(@RequestParam List<Long> ids) {
+    public List<UserDto> getByIds(@RequestParam @UniqueElements List<Long> ids) {
         return service.getByIds(ids);
     }
 
