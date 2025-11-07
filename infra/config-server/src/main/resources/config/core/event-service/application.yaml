@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:6542/ewm
-    username: ewm
+    url: jdbc:postgresql://localhost:6542/events
+    username: events
     password: 1234
     driver-class-name: org.postgresql.Driver
   sql:

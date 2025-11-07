@@ -8,7 +8,7 @@ import ru.practicum.event.output.EventShortDto;
 
 import java.util.List;
 
-@FeignClient(name = "main-service", path = "internal/api/events", configuration = FeignConfig.class)
+@FeignClient(name = "event-service", path = "internal/api/events", configuration = FeignConfig.class)
 public interface EventFeignClient {
     @GetMapping("/{eventId}/full")
     EventFullDto getEventFullById(@PathVariable Long eventId);
