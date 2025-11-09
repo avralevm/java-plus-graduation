@@ -31,3 +31,10 @@ logging:
 discovery:
   services:
     stats-server-id: stats-server
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 50
+        failureRateThreshold: 50

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.UserAdminFeignClient;
+import ru.practicum.client.user.UserAdminFeignClient;
 import ru.practicum.service.UserService;
 import ru.practicum.user.output.UserDto;
 

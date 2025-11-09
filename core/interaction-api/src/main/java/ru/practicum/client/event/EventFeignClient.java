@@ -1,14 +1,19 @@
-package ru.practicum.client;
+package ru.practicum.client.event;
 
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.FeignConfig;
 import ru.practicum.event.output.EventFullDto;
 import ru.practicum.event.output.EventShortDto;
 
+import javax.naming.ServiceUnavailableException;
 import java.util.List;
 
-@FeignClient(name = "event-service", path = "internal/api/events", configuration = FeignConfig.class)
+@FeignClient(name = "event-service",
+        path = "internal/api/events",
+        configuration = FeignConfig.class,
+        fallback = EventFeignClientFallback.class)
 public interface EventFeignClient {
     @GetMapping("/{eventId}/full")
     EventFullDto getEventFullById(@PathVariable Long eventId);

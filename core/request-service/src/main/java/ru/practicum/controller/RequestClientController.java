@@ -3,7 +3,7 @@ package ru.practicum.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.RequestFeignClient;
+import ru.practicum.client.request.RequestFeignClient;
 import ru.practicum.request.Status;
 import ru.practicum.request.output.EventRequestCountDto;
 import ru.practicum.request.output.ParticipationRequestDtoOut;

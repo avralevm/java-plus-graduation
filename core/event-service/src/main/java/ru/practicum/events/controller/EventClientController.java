@@ -3,7 +3,7 @@ package ru.practicum.events.controller;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.client.EventFeignClient;
+import ru.practicum.client.event.EventFeignClient;
 import ru.practicum.event.output.EventFullDto;
 import ru.practicum.event.output.EventShortDto;
 import ru.practicum.events.service.EventService;
