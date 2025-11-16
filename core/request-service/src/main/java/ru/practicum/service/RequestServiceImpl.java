@@ -3,6 +3,7 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.CollectorClient;
 import ru.practicum.client.event.EventFeignClient;
 import ru.practicum.client.user.UserAdminFeignClient;
 import ru.practicum.event.output.EventFullDto;
@@ -16,6 +17,7 @@ import ru.practicum.model.Request;
 import ru.practicum.request.Status;
 import ru.practicum.storage.RequestRepository;
 import ru.practicum.user.output.UserDto;
+import ru.yandex.practicum.grpc.stats.proto.ActionTypeProto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +30,7 @@ public class RequestServiceImpl implements RequestService {
     private final EventFeignClient eventFeignClient;
     private final UserAdminFeignClient userAdminFeignClient;
     private final RequestMapper requestMapper;
+    private final CollectorClient collectorClient;
 
     @Override
     public List<ParticipationRequestDtoOut> findByUserId(Long userId) {
@@ -102,6 +105,9 @@ public class RequestServiceImpl implements RequestService {
 
         Request savedRequest = requestRepository.save(request);
         log.info("Request created with id: {}", savedRequest.getId());
+
+        collectorClient.sendUserAction(userId, eventId, ActionTypeProto.ACTION_REGISTER);
+        log.info("Statistic send");
         return requestMapper.toRequestDto(savedRequest);
     }
 
@@ -125,6 +131,11 @@ public class RequestServiceImpl implements RequestService {
 
         log.info("Request with id: {} cancelled successfully", requestId);
         return requestMapper.toRequestDto(updatedRequest);
+    }
+
+    @Override
+    public boolean checkUserTakePart(Long userId, Long eventId) {
+        return requestRepository.existsByRequesterIdAndEventIdAndStatus(userId, eventId, Status.CONFIRMED);
     }
 
     private void validateRequestCreation(UserDto requester, EventFullDto event) {

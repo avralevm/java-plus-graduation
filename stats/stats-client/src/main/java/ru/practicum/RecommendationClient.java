@@ -9,6 +9,7 @@ import ru.yandex.practicum.grpc.stats.proto.SimilarEventsRequestProto;
 import ru.yandex.practicum.grpc.stats.proto.UserPredictionsRequestProto;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -40,9 +41,9 @@ public class RecommendationClient {
         return asStream(iterator);
     }
 
-    public Stream<RecommendedEventProto> GetInteractionsCount(long eventId) {
+    public Stream<RecommendedEventProto> GetInteractionsCount(List<Long> eventIds) {
         InteractionsCountRequestProto request = InteractionsCountRequestProto.newBuilder()
-                .setEventId(eventId)
+                .addAllEventId(eventIds)
                 .build();
 
         Iterator<RecommendedEventProto> iterator = client.getInteractionsCount(request);

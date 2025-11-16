@@ -37,4 +37,9 @@ public class RequestClientController implements RequestFeignClient {
     public List<ParticipationRequestDtoOut> setStatusForAllByIds(@RequestParam List<Long> ids, @RequestParam Status status) {
         return requestService.setStatusForAllByIds(ids, status);
     }
+
+    @GetMapping("/check")
+    public boolean checkUserTakePart(@RequestParam Long userId, @RequestParam Long eventId) {
+        return requestService.checkUserTakePart(userId, eventId);
+    }
 }

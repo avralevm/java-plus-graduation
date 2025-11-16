@@ -26,4 +26,7 @@ public interface RequestFeignClient {
 
     @PostMapping("/status")
     List<ParticipationRequestDtoOut> setStatusForAllByIds(@RequestParam List<Long> ids, @RequestParam Status status);
+
+    @GetMapping("/check")
+    boolean checkUserTakePart(@RequestParam Long userId, @RequestParam Long eventId);
 }
