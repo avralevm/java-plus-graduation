@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
-import ru.practicum.kafka.KafkaService;
+import ru.practicum.service.CollectorService;
 import ru.yandex.practicum.grpc.stats.proto.ActionTypeProto;
 import ru.yandex.practicum.grpc.stats.proto.UserActionProto;
 
@@ -15,7 +15,8 @@ import java.time.Instant;
 @Component
 @RequiredArgsConstructor
 public class UserActionHandler {
-    private final KafkaService kafkaService;
+    private final CollectorService kafkaService;
+
     public void handle(UserActionProto userAction) {
         UserActionAvro request = UserActionAvro.newBuilder()
                 .setUserId(userAction.getUserId())

@@ -1,7 +1,7 @@
-package ru.practicum.kafka;
+package ru.practicum.service;
 
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 
-public interface KafkaService {
+public interface CollectorService {
     void sendUserAction(UserActionAvro userAction);
 }

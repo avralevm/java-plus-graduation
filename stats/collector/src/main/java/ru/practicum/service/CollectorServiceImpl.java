@@ -1,4 +1,4 @@
-package ru.practicum.kafka;
+package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,7 @@ import ru.practicum.ewm.stats.avro.UserActionAvro;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class KafkaServiceImpl implements KafkaService {
+public class CollectorServiceImpl implements CollectorService {
     private final Producer<String, SpecificRecordBase> producer;
 
     @Value("collector.kafka.producer.topics.user-actions")
