@@ -37,9 +37,9 @@ services:
     ports:
       - "6541:5432"
     environment:
-      - POSTGRES_USER=stats
+      - POSTGRES_USER=analyzer-stats
       - POSTGRES_PASSWORD=1234
-      - POSTGRES_DB=stats
+      - POSTGRES_DB=analyzer-stats
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s

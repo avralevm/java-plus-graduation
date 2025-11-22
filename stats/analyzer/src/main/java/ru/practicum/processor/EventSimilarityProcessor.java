@@ -1,4 +1,4 @@
-package ru.practicum.starter;
+package ru.practicum.processor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +12,8 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.practicum.ewm.stats.avro.UserActionAvro;
-import ru.practicum.handler.EventSimilarityHandler;
+import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
+import ru.practicum.service.eventSimilarity.EventSimilarityService;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -23,26 +23,27 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AggregationStarter {
-    private final Consumer<String, UserActionAvro> consumer;
+public class EventSimilarityProcessor implements Runnable {
+    private final Consumer<String, EventSimilarityAvro> consumer;
     private final Producer<String, SpecificRecordBase> producer;
-    private final EventSimilarityHandler handler;
+    private final EventSimilarityService service;
     private static final Duration CONSUME_ATTEMPT_TIMEOUT = Duration.ofMillis(1000);
 
-    @Value("${kafka.topics.user-actions}")
+    @Value("${kafka.topics.events-similarity}")
     private String topic;
 
     private static final Map<TopicPartition, OffsetAndMetadata> currentOffsets = new HashMap<>();
 
-    public void start() {
+    @Override
+    public void run() {
         Runtime.getRuntime().addShutdownHook(new Thread(consumer::wakeup));
         try {
             consumer.subscribe(List.of(topic));
             while (true) {
-                ConsumerRecords<String, UserActionAvro> records = consumer.poll(CONSUME_ATTEMPT_TIMEOUT);
+                ConsumerRecords<String, EventSimilarityAvro> records = consumer.poll(CONSUME_ATTEMPT_TIMEOUT);
                 int count = 0;
-                for (ConsumerRecord<String, UserActionAvro> record : records) {
-                    handler.handle(record.value());
+                for (ConsumerRecord<String, EventSimilarityAvro> record : records) {
+                    service.saveEventSimilarity(record.value());
                     manageOffsets(record, count, consumer);
                     count++;
                 }
@@ -65,7 +66,7 @@ public class AggregationStarter {
         }
     }
 
-    private static void manageOffsets(ConsumerRecord<String, UserActionAvro> record, int count, Consumer<String, UserActionAvro> consumer) {
+    private static void manageOffsets(ConsumerRecord<String, EventSimilarityAvro> record, int count, Consumer<String, EventSimilarityAvro> consumer) {
         currentOffsets.put(
                 new TopicPartition(record.topic(), record.partition()),
                 new OffsetAndMetadata(record.offset() + 1)
@@ -79,4 +80,5 @@ public class AggregationStarter {
             });
         }
     }
+
 }

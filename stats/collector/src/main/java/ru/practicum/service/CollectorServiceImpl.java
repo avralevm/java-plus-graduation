@@ -15,7 +15,7 @@ import ru.practicum.ewm.stats.avro.UserActionAvro;
 public class CollectorServiceImpl implements CollectorService {
     private final Producer<String, SpecificRecordBase> producer;
 
-    @Value("collector.kafka.producer.topics.user-actions")
+    @Value("${kafka.producer.topics.user-actions}")
     private String topic;
 
     @Override

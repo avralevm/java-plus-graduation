@@ -17,7 +17,7 @@ import java.util.List;
 public class AggregationServiceImpl implements AggregationService {
     private final Producer<String, SpecificRecordBase> producer;
 
-    @Value("collector.kafka.producer.topics.events-similarity")
+    @Value("${kafka.topics.events-similarity}")
     private String topic;
 
     @Override

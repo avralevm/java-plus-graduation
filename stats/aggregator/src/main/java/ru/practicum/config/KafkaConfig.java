@@ -23,9 +23,9 @@ import java.util.Map;
 @ConfigurationProperties("aggregator.kafka")
 @RequiredArgsConstructor
 public class KafkaConfig {
-    @Value("${collector.kafka.properties.bootstrap-servers}")
+    @Value("${kafka.properties.bootstrap-servers}")
     private String bootstrapServers;
-    @Value("${collector.kafka.consumer.properties.group-id}")
+    @Value("${kafka.consumer.properties.group-id}")
     private String groupId;
 
     @Bean(destroyMethod = "close")

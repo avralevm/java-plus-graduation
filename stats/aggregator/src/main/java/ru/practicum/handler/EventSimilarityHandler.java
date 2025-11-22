@@ -22,6 +22,8 @@ public class EventSimilarityHandler {
     private final AggregationService aggregationService;
 
     public void handle(UserActionAvro userAction) {
+        log.info("Получили userAction: {}", userAction);
+
         Long userId = userAction.getUserId();
         Long eventId = userAction.getEventId();
         Double newWeight = convertTypeActionToWeight(userAction.getActionType());
@@ -40,6 +42,7 @@ public class EventSimilarityHandler {
         updateEventWeightSum(eventId);
         List<EventSimilarityAvro> similarities = updateMinWeightsAndCalculateSimilarities(eventId, userId, newWeight, currentWeight, timestamp);
 
+        log.info("Отправляем similarities: {}", similarities);
         if (!similarities.isEmpty()) {
             aggregationService.sendEventSimilarities(similarities);
         }
@@ -109,7 +112,7 @@ public class EventSimilarityHandler {
         }
 
         Double similarity = sumMin / Math.sqrt(sumA * sumB);
-        log.debug("Рассчитано сходство для пары ({}, {}): sumMin={}, sumA={}, sumB={}, similarity={}",
+        log.info("Рассчитано сходство для пары ({}, {}): sumMin={}, sumA={}, sumB={}, similarity={}",
                 minId, maxId, sumMin, sumA, sumB, similarity);
         return similarity;
     }
@@ -127,6 +130,6 @@ public class EventSimilarityHandler {
                 .mapToDouble(Double::doubleValue)
                 .sum();
         eventWeightSums.put(eventId, sumWeight);
-        log.debug("Обновлена сумма весов для мероприятия {}: {}", eventId, sumWeight);
+        log.info("Обновлена сумма весов для мероприятия {}: {}", eventId, sumWeight);
     }
 }

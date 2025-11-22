@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Configuration
 public class KafkaProducerConfig {
-    @Value("${collector.kafka.producer.properties.bootstrap-servers}")
+    @Value("${kafka.producer.properties.bootstrap-servers}")
     private String bootstrapServers;
 
     @Bean(destroyMethod = "close")
