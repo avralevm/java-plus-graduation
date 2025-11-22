@@ -7,7 +7,6 @@ import ru.practicum.request.Status;
 import ru.practicum.request.output.EventRequestCountDto;
 import ru.practicum.request.output.ParticipationRequestDtoOut;
 
-import javax.naming.ServiceUnavailableException;
 import java.util.List;
 
 @FeignClient(name = "request-service",
@@ -26,4 +25,7 @@ public interface RequestFeignClient {
 
     @PostMapping("/status")
     List<ParticipationRequestDtoOut> setStatusForAllByIds(@RequestParam List<Long> ids, @RequestParam Status status);
+
+    @GetMapping("/check")
+    boolean checkUserTakePart(@RequestParam Long userId, @RequestParam Long eventId);
 }

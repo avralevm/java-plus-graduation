@@ -18,7 +18,7 @@ public interface EventService {
 
     List<EventFullDto> findEvents(EventAdminParam param);
 
-    EventFullDto getEvent(Long eventId);
+    EventFullDto getEventById(Long eventId, Long userId);
 
     EventFullDto getEvenFullById(Long eventId);
 
@@ -39,4 +39,8 @@ public interface EventService {
     EventFullDto createEvent(NewEventDto newEventDto, Long userId);
 
     List<EventShortDto> getEventsForUser(Long userId, Integer from, Integer to);
+
+    List<EventShortDto> getRecommendationEvents(Long userId);
+
+    void likeEvent(Long eventId, Long userId);
 }

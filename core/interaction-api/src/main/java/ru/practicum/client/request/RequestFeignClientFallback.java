@@ -30,4 +30,9 @@ public class RequestFeignClientFallback implements RequestFeignClient {
     public List<ParticipationRequestDtoOut> setStatusForAllByIds(List<Long> ids, Status status) {
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Fallback response: RequestService не доступен");
     }
+
+    @Override
+    public boolean checkUserTakePart(Long userId, Long eventId) {
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Fallback response: RequestService не доступен");
+    }
 }

@@ -7,7 +7,6 @@ import ru.practicum.client.FeignConfig;
 import ru.practicum.event.output.EventFullDto;
 import ru.practicum.event.output.EventShortDto;
 
-import javax.naming.ServiceUnavailableException;
 import java.util.List;
 
 @FeignClient(name = "event-service",
