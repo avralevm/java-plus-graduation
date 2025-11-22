@@ -168,8 +168,8 @@ public class ErrorHandler {
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTypeMismatch(BadRequestException ex) {
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
         ErrorResponse response = new ErrorResponse(
                 "Bad Request error",
                 ex.getMessage(),

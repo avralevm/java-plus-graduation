@@ -353,7 +353,7 @@ public class EventServiceImpl implements EventService {
             throw new ConflictException("Event with id " + eventId + " has not been published");
         }
 
-        if(!requestFeignClient.checkUserTakePart(userId, eventId)) {
+        if (!requestFeignClient.checkUserTakePart(userId, eventId)) {
             throw new BadRequestException("User with id: " + userId + " did not participate in the event with id: " + eventId);
         }
 
@@ -465,7 +465,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Double> getRatings(List<Long> eventIds) {
-        return recommendationClient.GetInteractionsCount(eventIds)
+        return recommendationClient.getInteractionsCount(eventIds)
                 .collect(Collectors.toMap(RecommendedEventProto::getEventId, RecommendedEventProto::getScore));
     }
 }

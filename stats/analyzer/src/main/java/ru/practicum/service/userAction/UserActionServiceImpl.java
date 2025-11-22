@@ -38,7 +38,7 @@ public class UserActionServiceImpl implements UserActionService {
             log.info("Сохранили в бд действие с большим весом: {}", existing);
         }
 
-        log.debug("В бд не сохранилось новое действие, вес не достаточен: oldWeight - {}, newWeight - {}", oldWeight, newWeight );
+        log.debug("В бд не сохранилось новое действие, вес не достаточен: oldWeight - {}, newWeight - {}", oldWeight, newWeight);
     }
 
     private Double convertTypeActionToWeight(ActionType actionType) {

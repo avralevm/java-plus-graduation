@@ -72,9 +72,9 @@ public class EventSimilarityHandler {
 
             Double score = calculateSimilarity(minId, maxId);
 
-            EventSimilarityAvro EventsSimilarityAvro = createEventSimilarity(minId, maxId, score, timestamp);
-            eventSimilarities.add(EventsSimilarityAvro);
-            log.debug("Avro-сообщение: {}", EventsSimilarityAvro);
+            EventSimilarityAvro eventsSimilarityAvro = createEventSimilarity(minId, maxId, score, timestamp);
+            eventSimilarities.add(eventsSimilarityAvro);
+            log.debug("Avro-сообщение: {}", eventsSimilarityAvro);
         }
 
         return eventSimilarities;

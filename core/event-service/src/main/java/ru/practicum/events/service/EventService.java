@@ -1,7 +1,5 @@
 package ru.practicum.events.service;
 
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import ru.practicum.event.in.EventRequestStatusUpdateRequest;
 import ru.practicum.event.in.NewEventDto;
 import ru.practicum.event.in.UpdateEventAdminRequest;

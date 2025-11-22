@@ -41,7 +41,7 @@ public class RecommendationClient {
         return asStream(iterator);
     }
 
-    public Stream<RecommendedEventProto> GetInteractionsCount(List<Long> eventIds) {
+    public Stream<RecommendedEventProto> getInteractionsCount(List<Long> eventIds) {
         InteractionsCountRequestProto request = InteractionsCountRequestProto.newBuilder()
                 .addAllEventId(eventIds)
                 .build();

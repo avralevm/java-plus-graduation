@@ -2,12 +2,10 @@ package ru.practicum.processor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,9 +66,9 @@ public class UserActionProcessor implements Runnable {
                 new OffsetAndMetadata(record.offset() + 1)
         );
 
-        if(count % 10 == 0) {
+        if (count % 10 == 0) {
             consumer.commitAsync(currentOffsets, (offsets, exception) -> {
-                if(exception != null) {
+                if (exception != null) {
                     log.warn("Ошибка во время фиксации offset: {}", offsets, exception);
                 }
             });
