@@ -25,7 +25,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserActionProcessor implements Runnable {
     private final Consumer<String, UserActionAvro> consumer;
-    private final Producer<String, SpecificRecordBase> producer;
     private final UserActionService service;
     private static final Duration CONSUME_ATTEMPT_TIMEOUT = Duration.ofMillis(1000);
 
@@ -55,13 +54,10 @@ public class UserActionProcessor implements Runnable {
             log.error("Ошибка во время обработки событий от датчиков", e);
         } finally {
             try {
-                producer.flush();
                 consumer.commitSync(currentOffsets);
             } finally {
                 log.info("Закрываем consumer");
                 consumer.close();
-                log.info("Закрываем producer");
-                producer.close();
             }
         }
     }

@@ -1,10 +1,12 @@
 package ru.practicum.mapper;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.model.ActionType;
 import ru.practicum.model.UserAction;
 
+@Component
 public class UserActionMapper {
     public UserAction toUserAction(UserActionAvro userActionAvro) {
         return UserAction.builder()
