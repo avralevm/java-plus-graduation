@@ -1,9 +1,7 @@
 spring:
   application:
     name: analyzer
-  sql:
-    init:
-      mode: always
+
   config:
     import: "configserver:"
   cloud:
