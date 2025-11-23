@@ -13,17 +13,14 @@ import ru.practicum.ewm.stats.avro.UserActionAvro;
 @RequiredArgsConstructor
 @Slf4j
 public class CollectorServiceImpl implements CollectorService {
-    private final Producer<String, SpecificRecordBase> producer;
+    private final Producer<String, UserActionAvro> producer;
 
     @Value("${kafka.producer.topics.user-actions}")
     private String topic;
 
     @Override
     public void sendUserAction(UserActionAvro userAction) {
-        ProducerRecord<String, SpecificRecordBase> record = new ProducerRecord<>(
-                topic,
-                String.valueOf(userAction.getUserId()),
-                userAction);
+        ProducerRecord<String, UserActionAvro> record = new ProducerRecord<>(topic, userAction);
 
         log.info("Отправляем record: {} \n", record);
         producer.send(record);
