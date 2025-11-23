@@ -38,3 +38,11 @@ resilience4j:
       default:
         slidingWindowSize: 50
         failureRateThreshold: 50
+
+grpc:
+  client:
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext

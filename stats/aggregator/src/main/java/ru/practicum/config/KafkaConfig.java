@@ -2,7 +2,6 @@ package ru.practicum.config;
 
 import deserializer.UserActionDeserializer;
 import lombok.RequiredArgsConstructor;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -14,6 +13,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 import serializer.GeneralAvroSerializer;
 
@@ -39,7 +39,7 @@ public class KafkaConfig {
     }
 
     @Bean(destroyMethod = "close")
-    public Producer<String, SpecificRecordBase> producerFactory() {
+    public Producer<String, EventSimilarityAvro> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);

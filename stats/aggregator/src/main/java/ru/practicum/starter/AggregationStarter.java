@@ -2,7 +2,6 @@ package ru.practicum.starter;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -12,6 +11,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.practicum.ewm.stats.avro.EventSimilarityAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.handler.EventSimilarityHandler;
 
@@ -25,7 +25,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AggregationStarter {
     private final Consumer<String, UserActionAvro> consumer;
-    private final Producer<String, SpecificRecordBase> producer;
+    private final Producer<String, EventSimilarityAvro> producer;
     private final EventSimilarityHandler handler;
     private static final Duration CONSUME_ATTEMPT_TIMEOUT = Duration.ofMillis(1000);
 
