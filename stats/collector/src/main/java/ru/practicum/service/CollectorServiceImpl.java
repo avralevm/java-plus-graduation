@@ -1,0 +1,30 @@
+package ru.practicum.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import ru.practicum.ewm.stats.avro.UserActionAvro;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CollectorServiceImpl implements CollectorService {
+    private final Producer<String, UserActionAvro> producer;
+
+    @Value("${kafka.producer.topics.user-actions}")
+    private String topic;
+
+    @Override
+    public void sendUserAction(UserActionAvro userAction) {
+        ProducerRecord<String, UserActionAvro> record = new ProducerRecord<>(topic, userAction);
+
+        log.info("Отправляем record: {} \n", record);
+        producer.send(record);
+        producer.flush();
+
+        log.info("Отправили record \n");
+    }
+}

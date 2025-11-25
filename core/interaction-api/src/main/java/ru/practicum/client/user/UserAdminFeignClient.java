@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.FeignConfig;
 import ru.practicum.user.output.UserDto;
 
-import javax.naming.ServiceUnavailableException;
 import java.util.List;
 
 @FeignClient(name = "user-service",

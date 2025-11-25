@@ -20,4 +20,6 @@ public interface RequestService {
     ParticipationRequestDtoOut cancel(Long userId, Long requestId);
 
     List<ParticipationRequestDtoOut> setStatusForAllByIds(List<Long> ids, Status status);
+
+    boolean checkUserTakePart(Long userId, Long eventId);
 }
