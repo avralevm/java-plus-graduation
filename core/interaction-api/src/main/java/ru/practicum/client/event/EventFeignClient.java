@@ -22,4 +22,7 @@ public interface EventFeignClient {
 
     @GetMapping("/by-ids")
     List<EventShortDto> getEventByIds(@RequestParam @UniqueElements List<Long> ids);
+
+    @GetMapping("/check")
+    boolean checkExistsEventByCategoryId(@RequestParam Long id);
 }

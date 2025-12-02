@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.CollectorClient;
 import ru.practicum.RecommendationClient;
-import ru.practicum.category.model.Category;
-import ru.practicum.category.storage.CategoryRepository;
+import ru.practicum.category.output.CategoryDto;
+import ru.practicum.client.category.CategoryFeignClient;
 import ru.practicum.client.request.RequestFeignClient;
 import ru.practicum.client.user.UserAdminFeignClient;
 import ru.practicum.event.in.EventRequestStatusUpdateRequest;
@@ -49,7 +49,7 @@ import static ru.practicum.constants.Methods.copyFields;
 @Slf4j
 public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
-    private final CategoryRepository categoryRepository;
+    private final CategoryFeignClient categoryFeignClient;
     private final EventRepository eventRepository;
 
     private final UserAdminFeignClient userAdminFeignClient;
@@ -62,13 +62,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEvent(UpdateEventAdminRequest request, Long eventId) {
         Event event = findEventOrThrow(eventId);
-        Category category;
-        if (request.getCategory() == null) {
-            category = event.getCategory();
-        } else {
-            category = findCategoryOrThrow(request.getCategory());
-        }
-        Event newEvent = eventMapper.toEvent(request, category, event.getInitiatorId());
+        CategoryDto category = categoryFeignClient.getCategoryById(event.getCategoryId());
+
+        Event newEvent = eventMapper.toEvent(request, category.getId(), event.getInitiatorId());
         copyFields(event, newEvent);
 
         if (request.getStateAction() == null) {
@@ -95,6 +91,7 @@ public class EventServiceImpl implements EventService {
 
         EventFullDto eventFullDto = eventMapper.toEventFullDto(event);
         eventFullDto.setInitiator(toUserShortDto(userDto));
+        eventFullDto.setCategory(category);
         return eventFullDto;
     }
 
@@ -248,15 +245,14 @@ public class EventServiceImpl implements EventService {
         if (updateEventUserRequest.getEventDate() != null) {
             dateValidation(updateEventUserRequest.getEventDate(), 2);
         }
-        Category category;
-        if (updateEventUserRequest.getCategory() != null) {
-            category = findCategoryOrThrow(updateEventUserRequest.getCategory());
-        } else {
-            category = event.getCategory();
-        }
 
+        Long categoryId = updateEventUserRequest.getCategory() != null ?
+                updateEventUserRequest.getCategory() :
+                event.getCategoryId();
+
+        CategoryDto category = categoryFeignClient.getCategoryById(categoryId);
         UserDto user = userAdminFeignClient.getById(userId);
-        Event newEvent = eventMapper.toEvent(updateEventUserRequest, category, user.getId());
+        Event newEvent = eventMapper.toEvent(updateEventUserRequest, category.getId(), user.getId());
 
         copyFields(event, newEvent);
         if (updateEventUserRequest.getStateAction() == StateActionForUser.SEND_TO_REVIEW) {
@@ -285,9 +281,9 @@ public class EventServiceImpl implements EventService {
 
         UserDto user = userAdminFeignClient.getById(userId);
 
-        Category category = findCategoryOrThrow(newEventDto.getCategory());
+        CategoryDto category = categoryFeignClient.getCategoryById(newEventDto.getCategory());
 
-        Event event = eventMapper.toEvent(newEventDto, category, user.getId());
+        Event event = eventMapper.toEvent(newEventDto, category.getId(), user.getId());
         if (event.getState() == null) {
             event.setState(State.PENDING);
         }
@@ -310,26 +306,11 @@ public class EventServiceImpl implements EventService {
             return List.of();
         }
 
-        List<Long> eventIds = getEventIds(events);
-        Map<Long, Double> ratings = getRatings(eventIds);
-
         if (events.isEmpty()) {
             return List.of();
         }
 
-        List<EventShortDto> shortDtos = events
-                .stream()
-                .map(eventMapper::toEventShortDto)
-                .toList();
-
-        if (!ratings.isEmpty()) {
-            for (EventShortDto eventShortDto : shortDtos) {
-                eventShortDto.setRating(ratings.get(eventShortDto.getId()));
-            }
-        } else {
-            shortDtos.forEach(eventShortDto -> eventShortDto.setRating(0.0));
-        }
-        return shortDtos;
+        return mapToShortDto(events);
     }
 
     @Transactional(readOnly = true)
@@ -360,6 +341,10 @@ public class EventServiceImpl implements EventService {
         collectorClient.sendUserAction(userId, eventId, ActionTypeProto.ACTION_LIKE);
     }
 
+    @Override
+    public boolean checkExistsEventByCategoryId(Long id) {
+        return eventRepository.existsByCategoryId(id);
+    }
 
     private void dateValidation(LocalDateTime date, int hours) {
         if (!date.isAfter(LocalDateTime.now().plusHours(hours).minusSeconds(5))) {
@@ -374,6 +359,7 @@ public class EventServiceImpl implements EventService {
         Map<Long, Double> ratings = getRatings(eventIds);
 
         Map<Long, UserDto> initiators = getUsersFromEvents(events);
+        Map<Long, CategoryDto> categories = getCategoriesFromEvents(events);
 
         List<EventFullDto> eventFullDtos = events.stream()
                 .map(eventMapper::toEventFullDto)
@@ -393,6 +379,12 @@ public class EventServiceImpl implements EventService {
                 dto.setInitiator(toUserShortDto(userDto));
             }
 
+            // Устанавливаем категорию
+            CategoryDto categoryDto = categories.get(event.getCategoryId());
+            if (categoryDto != null) {
+                dto.setCategory(categoryDto);
+            }
+
             // Дополнительная логика для requestModeration
             if (!dto.getRequestModeration() || dto.getParticipantLimit() == 0) {
                 dto.setConfirmedRequests(dto.getConfirmedRequests() +
@@ -409,6 +401,7 @@ public class EventServiceImpl implements EventService {
         Map<Long, Double> ratings = getRatings(eventIds);
 
         Map<Long, UserDto> initiators = getUsersFromEvents(events);
+        Map<Long, CategoryDto> categories = getCategoriesFromEvents(events);
 
         List<EventShortDto> eventShortDtos = events.stream()
                 .map(eventMapper::toEventShortDto).toList();
@@ -422,6 +415,11 @@ public class EventServiceImpl implements EventService {
             UserDto userDto = initiators.get(event.getInitiatorId());
             if (userDto != null) {
                 dto.setInitiator(toUserShortDto(userDto));
+            }
+
+            CategoryDto categoryDto = categories.get(event.getCategoryId());
+            if (categoryDto != null) {
+                dto.setCategory(categoryDto);
             }
         }
         return eventShortDtos;
@@ -439,11 +437,6 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
     }
 
-    private Category findCategoryOrThrow(Long categoryId) {
-        return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Category with id " + categoryId + " not found"));
-    }
-
     private List<Long> getEventIds(List<Event> events) {
         return events.stream()
                 .map(Event::getId)
@@ -457,6 +450,15 @@ public class EventServiceImpl implements EventService {
                 .toList();
         return userAdminFeignClient.getByIds(initiatorIds).stream()
                 .collect(Collectors.toMap(UserDto::getId, Function.identity()));
+    }
+
+    private Map<Long, CategoryDto> getCategoriesFromEvents(List<Event> events) {
+        List<Long> categoriesIds = events.stream()
+                .map(Event::getCategoryId)
+                .distinct()
+                .toList();
+        return categoryFeignClient.getByIds(categoriesIds).stream()
+                .collect(Collectors.toMap(CategoryDto::getId, Function.identity()));
     }
 
     private Map<Long, Long> getRequests(List<Long> events, Status status) {
