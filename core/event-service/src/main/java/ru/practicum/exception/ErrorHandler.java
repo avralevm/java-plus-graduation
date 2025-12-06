@@ -1,4 +1,4 @@
-package ru.practicum.exceptions;
+package ru.practicum.exception;
 
 import jakarta.ws.rs.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import ru.practicum.exception.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS locations;
+
 CREATE TABLE IF NOT EXISTS locations (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     lat FLOAT NOT NULL,
@@ -19,16 +22,4 @@ CREATE TABLE IF NOT EXISTS events (
     request_moderation BOOLEAN NOT NULL DEFAULT true,
     title VARCHAR(170) NOT NULL,
     initiator_id BIGINT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS compilations (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    pinned BOOLEAN NOT NULL DEFAULT false,
-    title VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS compilation_events (
-    compilation_id BIGINT NOT NULL REFERENCES compilations(id) ON DELETE CASCADE,
-    event_id BIGINT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    PRIMARY KEY (compilation_id, event_id)
 );

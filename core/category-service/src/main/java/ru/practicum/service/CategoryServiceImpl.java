@@ -10,14 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.in.NewCategoryDto;
 import ru.practicum.category.output.CategoryDto;
 import ru.practicum.client.event.EventFeignClient;
-import ru.practicum.event.output.EventShortDto;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.DuplicateException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.model.Category;
 import ru.practicum.storage.CategoryRepository;
-import ru.practicum.user.output.UserDto;
 
 import java.util.List;
 

@@ -2,12 +2,10 @@ package ru.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.UniqueElements;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.category.output.CategoryDto;
 import ru.practicum.client.category.CategoryFeignClient;
 import ru.practicum.service.CategoryService;
-import ru.practicum.user.output.UserDto;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package ru.practicum.compilation.controller;
+package ru.practicum.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.compilation.in.NewCompilationDto;
 import ru.practicum.compilation.in.UpdateCompilationRequest;
 import ru.practicum.compilation.output.CompilationDto;
-import ru.practicum.compilation.service.CompilationServiceImpl;
+import ru.practicum.service.CompilationServiceImpl;
 
 @RestController
 @RequestMapping("admin/compilations")
@@ -17,7 +17,6 @@ import ru.practicum.compilation.service.CompilationServiceImpl;
 @Slf4j
 @Validated
 public class CompilationAdminController {
-
     private final CompilationServiceImpl compilationService;
 
     @PostMapping

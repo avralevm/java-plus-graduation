@@ -1,4 +1,4 @@
-package ru.practicum.compilation.controller;
+package ru.practicum.controller;
 
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.compilation.in.CompilationPublicParam;
 import ru.practicum.compilation.output.CompilationDto;
-import ru.practicum.compilation.service.CompilationServiceImpl;
+import ru.practicum.service.CompilationServiceImpl;
 
 import java.util.List;
 

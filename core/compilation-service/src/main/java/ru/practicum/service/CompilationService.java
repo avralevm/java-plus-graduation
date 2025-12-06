@@ -1,4 +1,4 @@
-package ru.practicum.compilation.service;
+package ru.practicum.service;
 
 import ru.practicum.compilation.in.CompilationPublicParam;
 import ru.practicum.compilation.in.NewCompilationDto;

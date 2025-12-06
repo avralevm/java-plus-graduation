@@ -27,8 +27,8 @@ import ru.practicum.events.model.*;
 import ru.practicum.events.storage.EventRepository;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exceptions.DateException;
-import ru.practicum.exceptions.NoHavePermissionException;
+import ru.practicum.exception.DateException;
+import ru.practicum.exception.NoHavePermissionException;
 import ru.practicum.request.output.EventRequestCountDto;
 import ru.practicum.request.output.ParticipationRequestDtoOut;
 import ru.practicum.request.Status;
@@ -131,6 +131,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getEventByIds(List<Long> eventIds) {
+        log.info("Get Events by Ids: " + eventIds);
         List<Event> events = eventRepository.findAllById(eventIds);
         return mapToShortDto(events);
     }

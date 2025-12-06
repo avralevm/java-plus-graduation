@@ -54,12 +54,12 @@ spring:
             - Path=/users/*/events/**
 
         - id: public_compilation_service_route
-          uri: lb://event-service
+          uri: lb://compilation-service
           predicates:
             - Path=/compilations/**
 
         - id: admin_compilation_service_route
-          uri: lb://event-service
+          uri: lb://compilation-service
           predicates:
             - Path=/admin/compilations/**
 
