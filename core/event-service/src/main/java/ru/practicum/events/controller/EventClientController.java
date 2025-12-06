@@ -30,4 +30,9 @@ public class EventClientController implements EventFeignClient {
     public List<EventShortDto> getEventByIds(@RequestParam @UniqueElements List<Long> ids) {
         return eventService.getEventByIds(ids);
     }
+
+    @GetMapping("/check")
+    public boolean checkExistsEventByCategoryId(@RequestParam Long id) {
+        return eventService.checkExistsEventByCategoryId(id);
+    }
 }

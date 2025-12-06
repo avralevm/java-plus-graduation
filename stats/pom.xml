@@ -20,5 +20,4 @@
         <module>aggregator</module>
         <module>analyzer</module>
     </modules>
-
 </project>

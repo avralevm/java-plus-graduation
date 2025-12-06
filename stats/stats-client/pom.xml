@@ -11,8 +11,6 @@
     </parent>
 
     <artifactId>stats-client</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>EWM Stats Client</name>
 
     <dependencies>
         <dependency>

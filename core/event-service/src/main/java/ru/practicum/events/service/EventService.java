@@ -43,4 +43,6 @@ public interface EventService {
     List<EventShortDto> getRecommendationEvents(Long userId);
 
     void likeEvent(Long eventId, Long userId);
+
+    boolean checkExistsEventByCategoryId(Long id);
 }

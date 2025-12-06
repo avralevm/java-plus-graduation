@@ -12,7 +12,7 @@
 
     <artifactId>event-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>EWM Main Service</name>
+    <name>EWM Event Service</name>
 
     <dependencies>
         <dependency>

@@ -32,7 +32,7 @@ public class EventQueryDslRepositoryImpl implements EventQueryDslRepository {
             predicate.and(event.state.in(param.getStates()));
         }
         if (param.getCategories() != null && !param.getCategories().isEmpty()) {
-            predicate.and(event.category.id.in(param.getCategories()));
+            predicate.and(event.categoryId.in(param.getCategories()));
         }
         if (param.getStart() != null) {
             predicate.and(event.eventDate.after(param.getStart()));
@@ -61,7 +61,7 @@ public class EventQueryDslRepositoryImpl implements EventQueryDslRepository {
             predicate.and(event.state.in(param.getStates()));
         }
         if (param.getCategories() != null && !param.getCategories().isEmpty()) {
-            predicate.and(event.category.id.in(param.getCategories()));
+            predicate.and(event.categoryId.in(param.getCategories()));
         }
         if (param.getStart() != null) {
             predicate.and(event.eventDate.after(param.getStart()));

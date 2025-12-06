@@ -38,7 +38,7 @@
 		<module>stats</module>
 		<module>core</module>
 		<module>infra</module>
-	</modules>
+    </modules>
 
 	<dependencyManagement>
 		<dependencies>
