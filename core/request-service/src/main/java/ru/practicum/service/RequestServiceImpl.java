@@ -93,11 +93,12 @@ public class RequestServiceImpl implements RequestService {
 
         validateRequestCreation(requester, event);
 
-        Request request = new Request();
-        request.setEventId(eventId);
-        request.setRequesterId(userId);
-        request.setCreated(LocalDateTime.now());
-        request.setStatus(event.getParticipantLimit() == 0 ? Status.CONFIRMED : Status.PENDING);
+        Request request = Request.builder()
+                .requesterId(userId)
+                .eventId(eventId)
+                .created(LocalDateTime.now())
+                .status(event.getParticipantLimit() == 0 ? Status.CONFIRMED : Status.PENDING)
+                .build();
 
         if (!event.getRequestModeration()) {
             request.setStatus(Status.CONFIRMED);

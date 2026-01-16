@@ -43,8 +43,17 @@ public class PublicEventsController {
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
 
-        EventPublicParam param = new EventPublicParam(
-                text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        EventPublicParam param = EventPublicParam.builder()
+                .text(text)
+                .categories(categories)
+                .paid(paid)
+                .rangeStart(rangeStart)
+                .rangeEnd(rangeEnd)
+                .onlyAvailable(onlyAvailable)
+                .sort(sort)
+                .from(from)
+                .size(size)
+                .build();
 
         return eventService.findEvents(param);
     }

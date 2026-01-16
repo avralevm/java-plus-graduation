@@ -1,5 +1,7 @@
 package ru.practicum.client.event;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -22,4 +24,7 @@ public interface EventFeignClient {
 
     @GetMapping("/by-ids")
     List<EventShortDto> getEventByIds(@RequestParam @UniqueElements List<Long> ids);
+
+    @GetMapping("/check")
+    boolean checkExistsEventByCategoryId(@RequestParam Long id);
 }

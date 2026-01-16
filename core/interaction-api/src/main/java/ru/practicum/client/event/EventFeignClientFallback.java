@@ -24,4 +24,9 @@ public class EventFeignClientFallback implements EventFeignClient {
     public List<EventShortDto> getEventByIds(List<Long> ids) {
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Fallback response: EventService не доступен");
     }
+
+    @Override
+    public boolean checkExistsEventByCategoryId(Long id) {
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Fallback response: EventService не доступен");
+    }
 }

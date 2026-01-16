@@ -29,14 +29,15 @@ public class AdminEventsController {
                                          @RequestParam(value = "from", defaultValue = "0") @Min(0) Integer from,
                                          @RequestParam(value = "size", defaultValue = "10") @Min(0) Integer size) {
 
-        EventAdminParam param = new EventAdminParam();
-        param.setUsers(users);
-        param.setStates(states);
-        param.setCategories(categories);
-        param.setStart(rangeStart);
-        param.setEnd(rangeEnd);
-        param.setFrom(from == null ? 0 : from);
-        param.setSize(size == null ? 10 : size);
+        EventAdminParam param = EventAdminParam.builder()
+                .users(users)
+                .states(states)
+                .categories(categories)
+                .start(rangeStart)
+                .end(rangeEnd)
+                .from(from)
+                .size(size)
+                .build();
 
         return eventService.findEvents(param);
     }

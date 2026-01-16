@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.category.model.Category;
 import ru.practicum.event.state.State;
 
 import java.time.LocalDateTime;
@@ -22,9 +21,8 @@ public class Event {
     @Column
     private String annotation;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", referencedColumnName = "id")
-    private Category category;
+    @Column(name = "category_id")
+    private Long categoryId;
 
     @Column(name = "created_on")
     private LocalDateTime createdOn;
