@@ -1,5 +1,7 @@
 package ru.practicum.client.event;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -15,13 +17,13 @@ import java.util.List;
         fallback = EventFeignClientFallback.class)
 public interface EventFeignClient {
     @GetMapping("/{eventId}/full")
-    EventFullDto getEventFullById(@PathVariable Long eventId);
+    EventFullDto getEventFullById(@PathVariable @NotNull @NotEmpty Long eventId);
 
     @GetMapping("/{eventId}/short")
-    EventShortDto getEventShortById(@PathVariable Long eventId);
+    EventShortDto getEventShortById(@PathVariable @NotNull @NotEmpty Long eventId);
 
     @GetMapping("/by-ids")
-    List<EventShortDto> getEventByIds(@RequestParam @UniqueElements List<Long> ids);
+    List<EventShortDto> getEventByIds(@RequestParam @NotNull @NotEmpty @UniqueElements List<Long> ids);
 
     @GetMapping("/check")
     boolean checkExistsEventByCategoryId(@RequestParam Long id);

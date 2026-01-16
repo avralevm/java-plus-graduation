@@ -130,6 +130,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<EventShortDto> getEventByIds(List<Long> eventIds) {
         log.info("Get Events by Ids: " + eventIds);
         List<Event> events = eventRepository.findAllById(eventIds);

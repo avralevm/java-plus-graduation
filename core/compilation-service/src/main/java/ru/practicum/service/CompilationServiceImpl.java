@@ -54,14 +54,16 @@ public class CompilationServiceImpl implements CompilationService {
 
     public CompilationDto findById(Long compId) {
         Compilation compilation = findCompById(compId);
-        List<EventShortDto> events = eventFeignClient.getEventByIds(compilation.getEvents());
-
+        List<EventShortDto> events = List.of();
+        if (compilation.getEvents() != null && !compilation.getEvents().isEmpty()) {
+            events = eventFeignClient.getEventByIds(compilation.getEvents());
+        }
         return compilationMapper.toCompilationDto(compilation, events);
     }
 
     public CompilationDto add(NewCompilationDto dto) {
         List<EventShortDto> events = List.of();
-        if (dto.getEvents() != null) {
+        if (dto.getEvents() != null && !dto.getEvents().isEmpty()) {
             events = eventFeignClient.getEventByIds(dto.getEvents());
         }
 
@@ -79,25 +81,22 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     public CompilationDto update(Long compId, UpdateCompilationRequest updateCompilationRequest) {
-        Compilation findedCompilation = findCompById(compId);
+        Compilation compilation = findCompById(compId);
 
-        boolean pinned = findedCompilation.getPinned();
-        String title = findedCompilation.getTitle();
+        if (updateCompilationRequest.getPinned() != null) {
+            compilation.setPinned(updateCompilationRequest.getPinned());
+        }
+        if (updateCompilationRequest.getTitle() != null) {
+            compilation.setTitle(updateCompilationRequest.getTitle());
+        }
 
         List<EventShortDto> events = new ArrayList<>();
-        if (updateCompilationRequest.getEvents() != null) {
+        if (updateCompilationRequest.getEvents() != null && !updateCompilationRequest.getEvents().isEmpty()) {
             events = eventFeignClient.getEventByIds(updateCompilationRequest.getEvents());
+            compilation.setEvents(events.stream().map(EventShortDto::getId).collect(Collectors.toList()));
         }
 
-        Compilation compilationToUpdate = compilationMapper.toCompilation(updateCompilationRequest);
-
-        if (updateCompilationRequest.getPinned() == null) {
-            compilationToUpdate.setPinned(pinned);
-        }
-        if (updateCompilationRequest.getTitle() == null) {
-            compilationToUpdate.setTitle(title);
-        }
-        Compilation updatedCompilation = compilationRepository.save(compilationToUpdate);
+        Compilation updatedCompilation = compilationRepository.save(compilation);
 
         log.info("Compilation with id: {} was updated", updatedCompilation.getId());
         return compilationMapper.toCompilationDto(updatedCompilation, events);

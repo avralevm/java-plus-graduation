@@ -1,5 +1,7 @@
 package ru.practicum.events.controller;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.web.bind.annotation.*;
@@ -17,17 +19,17 @@ public class EventClientController implements EventFeignClient {
     private final EventService eventService;
 
     @GetMapping("/{eventId}/full")
-    public EventFullDto getEventFullById(@PathVariable Long eventId) {
+    public EventFullDto getEventFullById(@PathVariable @NotNull Long eventId) {
         return eventService.getEvenFullById(eventId);
     }
 
     @GetMapping("/{eventId}/short")
-    public EventShortDto getEventShortById(@PathVariable Long eventId) {
+    public EventShortDto getEventShortById(@PathVariable @NotNull Long eventId) {
         return eventService.getEventShortById(eventId);
     }
 
     @GetMapping("/by-ids")
-    public List<EventShortDto> getEventByIds(@RequestParam @UniqueElements List<Long> ids) {
+    public List<EventShortDto> getEventByIds(@RequestParam @NotNull @NotEmpty @UniqueElements List<Long> ids) {
         return eventService.getEventByIds(ids);
     }
 
