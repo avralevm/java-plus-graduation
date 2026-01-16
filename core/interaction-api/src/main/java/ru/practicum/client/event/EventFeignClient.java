@@ -17,13 +17,13 @@ import java.util.List;
         fallback = EventFeignClientFallback.class)
 public interface EventFeignClient {
     @GetMapping("/{eventId}/full")
-    EventFullDto getEventFullById(@PathVariable @NotNull @NotEmpty Long eventId);
+    EventFullDto getEventFullById(@PathVariable Long eventId);
 
     @GetMapping("/{eventId}/short")
-    EventShortDto getEventShortById(@PathVariable @NotNull @NotEmpty Long eventId);
+    EventShortDto getEventShortById(@PathVariable Long eventId);
 
     @GetMapping("/by-ids")
-    List<EventShortDto> getEventByIds(@RequestParam @NotNull @NotEmpty @UniqueElements List<Long> ids);
+    List<EventShortDto> getEventByIds(@RequestParam @UniqueElements List<Long> ids);
 
     @GetMapping("/check")
     boolean checkExistsEventByCategoryId(@RequestParam Long id);
